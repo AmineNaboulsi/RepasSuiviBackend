@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: OfferAuthDB
+    restart: always
+    environment:
+      POSTGRES_DB: "OfferAuth"
+      POSTGRES_USER: "OfferAuth"
+      POSTGRES_PASSWORD: "OfferAuth"
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_test:/var/lib/postgresql/data
+    networks:
+      - Offerylaravel_network
+volumes:
+  postgres_test:
+networks:
+  Offerylaravel_network:
