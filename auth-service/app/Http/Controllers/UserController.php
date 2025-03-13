@@ -2,71 +2,44 @@
 
 namespace App\Http\Controllers;
 
-class UserController extends Controller{
-    
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Auth;
 
-    public function index()
+class UserController extends Controller
+{
+    public function __construct()
     {
-        $users = User::all();
-        return response()->json($users);
+        // Add middleware for JWT auth
+        $this->middleware('auth:api', ['only' => ['me']]);
     }
 
-    public function show($id)
+    public function register(Request $request)
     {
-        $user = collect($this->users)->firstWhere('id', $id);
-        
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
+        try {
+            $this->validate($request, [
+                'name' => 'required|string',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:6',
+            ]);
+
+            $user = User::create([
+                'name' => $request->input('name'),
+                'email' => $request->input('email'),
+                'password' => Hash::make($request->input('password'))
+            ]);
+
+            return response()->json(['message' => 'User registered successfully'], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 422);
         }
-        
-        return response()->json($user);
     }
 
-    public function store(Request $request)
-    {
-        $this->validate($request, [
-            'name' => 'required',
-            'email' => 'required|email'
-        ]);
-        
-        // In a real app, you would save to the database
-        $newUser = [
-            'id' => count($this->users) + 1,
-            'name' => $request->input('name'),
-            'email' => $request->input('email')
-        ];
-        
-        return response()->json($newUser, 201);
-    }
 
-    public function update(Request $request, $id)
-    {
-        $user = collect($this->users)->firstWhere('id', $id);
-        
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-        
-        // In a real app, you would update the database
-        $updatedUser = [
-            'id' => $id,
-            'name' => $request->input('name', $user['name']),
-            'email' => $request->input('email', $user['email'])
-        ];
-        
-        return response()->json($updatedUser);
-    }
-
-    public function destroy($id)
-    {
-        $user = collect($this->users)->firstWhere('id', $id);
-        
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-        
-        // In a real app, you would delete from the database
-        
-        return response()->json(['message' => 'User deleted']);
-    }
 }

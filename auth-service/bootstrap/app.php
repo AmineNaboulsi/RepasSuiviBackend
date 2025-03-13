@@ -24,13 +24,23 @@ $app = new Laravel\Lumen\Application(
 );
 
 
-
 $app->withFacades();
+
 $app->withEloquent();
 
-// $app->withFacades();
+// Register JWT Auth service provider
+$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 
-// $app->withEloquent();
+// Register Auth Service Provider
+$app->register(App\Providers\AuthServiceProvider::class);
+
+// Add auth middleware
+$app->routeMiddleware([
+    'auth' => App\Http\Middleware\Authenticate::class,
+]);
+
+$app->alias('auth', Illuminate\Auth\AuthManager::class);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +76,7 @@ $app->singleton(
 
 $app->configure('app');
 
+
 /*
 |--------------------------------------------------------------------------
 | Register Middleware
@@ -95,6 +106,7 @@ $app->configure('app');
 | totally optional, so you are not required to uncomment this line.
 |
 */
+
 
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
