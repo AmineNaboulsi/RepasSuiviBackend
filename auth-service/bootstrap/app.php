@@ -28,20 +28,6 @@ $app->withFacades();
 
 $app->withEloquent();
 
-// Register JWT Auth service provider
-$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
-
-// Register Auth Service Provider
-$app->register(App\Providers\AuthServiceProvider::class);
-
-// Add auth middleware
-$app->routeMiddleware([
-    'auth' => App\Http\Middleware\Authenticate::class,
-]);
-
-$app->alias('auth', Illuminate\Auth\AuthManager::class);
-
-
 /*
 |--------------------------------------------------------------------------
 | Register Container Bindings
@@ -75,7 +61,9 @@ $app->singleton(
 */
 
 $app->configure('app');
+$app->configure('jwt');
 
+$app->configure('auth');
 
 /*
 |--------------------------------------------------------------------------
@@ -107,6 +95,7 @@ $app->configure('app');
 |
 */
 
+$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
@@ -122,6 +111,15 @@ $app->configure('app');
 | can respond to, as well as the controllers that may handle them.
 |
 */
+
+$app->alias('JWTAuth', Tymon\JWTAuth\Facades\JWTAuth::class);
+$app->alias('JWTFactory', Tymon\JWTAuth\Facades\JWTFactory::class);
+
+$app->routeMiddleware([
+    'auth' => App\Http\Middleware\Authenticate::class,
+]);
+
+$app->register(App\Providers\AuthServiceProvider::class);
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',

@@ -2,6 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 class UserController extends Controller{
 
 
@@ -32,5 +39,31 @@ class UserController extends Controller{
             ], 500);
         }
     }
+    public function login(Request $request)
+    {
+        try {
+            $credentials = $this->validate($request, [
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+
+            if (!$token = JWTAuth::attempt($credentials)) {
+                return response()->json(['message' => 'Invalid credentials'], 401);
+            }
+            $user = JWTAuth::user();
+
+            return response()->json([
+                'message' => 'Login successful',
+                'token' => $token,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Login error: ' . $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
 
 }
