@@ -28,19 +28,21 @@ $app->withFacades();
 
 $app->withEloquent();
 
-// Register JWT Auth service provider
 $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 
-// Register Auth Service Provider
 $app->register(App\Providers\AuthServiceProvider::class);
 
-// Add auth middleware
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
 ]);
 
 $app->alias('auth', Illuminate\Auth\AuthManager::class);
 
+$app->configure('mail');
+$app->register(Illuminate\Mail\MailServiceProvider::class);
+$app->alias('mail', Illuminate\Mail\Mailer::class);
+$app->alias('mail.manager', Illuminate\Mail\MailManager::class);
+$app->alias('mail.driver', Illuminate\Mail\Transport\Transport::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -87,6 +89,7 @@ $app->configure('app');
 | route or middleware that'll be assigned to some specific routes.
 |
 */
+
 
 // $app->middleware([
 //     App\Http\Middleware\ExampleMiddleware::class
