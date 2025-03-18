@@ -4,7 +4,7 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const path = require('path');
 const multer = require('multer');
-
+const route = require('./routes/AuthRoute');
 dotenv.config();
 
 const app = express();
@@ -20,12 +20,10 @@ app.post('/api/auth/login', async (req, res) => {
   return res.json({ message: 'login success' });
 });
 
-// Add multer for handling form data
 app.post('/api/auth/register', async (req, res) => {
+  
   try {
-      console.log('Request Content-Type:', req.headers['content-type']);
       const bodyData = req.body;
-      console.log('Sending data:', bodyData);
       const response = await fetch(`${AUTH_SERVICE_URL}/register`,{
         method: 'POST',
         headers: {
@@ -47,6 +45,7 @@ app.post('/api/auth/register', async (req, res) => {
       message: 'Could not connect to authentication service' + error
     });
   }
+  
 });
 
 app.post('/api/auth/verify-email', async (req, res) => {
@@ -71,6 +70,8 @@ app.post('/api/auth/verify-email', async (req, res) => {
     });
   }
 });
+
+app.use(route);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
