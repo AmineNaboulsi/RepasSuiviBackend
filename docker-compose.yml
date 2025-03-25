@@ -1,0 +1,80 @@
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - MEAL_SERVICE_URL=http://meal-service:8002
+      - ANALYTICS_SERVICE_URL=http://analytics-service:8004
+    depends_on:
+      - auth-service
+    networks:
+      - meal-tracker-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=auth-db
+      - DB_PORT=5432
+      - DB_DATABASE=auth_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=secret
+    ports:
+      - "8001:8000"
+    depends_on:
+      - auth-db
+    networks:
+      - meal-tracker-network
+
+  # Databases
+  auth-db:
+    image: postgres:17
+    container_name: AuthDB
+    restart: always
+    environment:
+      POSTGRES_DB: "OfferAuth"
+      POSTGRES_USER: "OfferAuth"
+      POSTGRES_PASSWORD: "OfferAuth"
+    ports:
+      - "5435:5432"
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    networks:
+      - meal-tracker-network
+  meal-db:
+    image: postgres:17
+    container_name: MealDB
+    restart: always
+    environment:
+      POSTGRES_DB: "MealsDB"
+      POSTGRES_USER: "MealsDB"
+      POSTGRES_PASSWORD: "MealsDB"
+    ports:
+      - "5437:5432"
+    volumes:
+      - meal-db-data:/var/lib/postgresql/data
+    networks:
+      - meal-tracker-network
+
+  redis:
+    image: redis:alpine
+    networks:
+      - meal-tracker-network
+
+networks:
+  meal-tracker-network:
+    driver: bridge
+
+volumes:
+  auth-db-data:
+  user-db-data:
+  portainer-data:
+  meal-db-data:
+  

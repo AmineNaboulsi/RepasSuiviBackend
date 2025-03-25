@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class UserController extends Controller{
 
+    protected $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+    
     public function register(Request $request)
     {
         try {
@@ -33,7 +41,6 @@ class UserController extends Controller{
 
             $token = \Tymon\JWTAuth\Facades\JWTAuth::fromUser($user);
 
-            // Setup email data
             $data = array(
                 "name" => $user->name,
                 "email" => $user->email,
