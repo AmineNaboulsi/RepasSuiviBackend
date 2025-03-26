@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Meal;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -22,7 +22,17 @@ class StoreMealRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            "name" => ["required", "string"],
+            "meal_type" => ["required", "string"],
+            "meal_image" => ["required", "string"],
+        ];
+    }
+
+    public function message(){
+        return [
+            "name.required" => "Name is required",
+            "meal_type.required" => "Meal type is required",
+            "meal_image.required" => "Meal image is required",
         ];
     }
 }

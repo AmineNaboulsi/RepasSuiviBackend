@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Food;
-use App\Http\Requests\StoreFoodRequest;
-use App\Http\Requests\UpdateFoodRequest;
+use App\Http\Requests\Food\StoreFoodRequest;
+use App\Http\Requests\Food\UpdateFoodRequest;
+use App\Http\Serivces\FoodService;
 
 class FoodController extends Controller
 {
@@ -14,40 +15,28 @@ class FoodController extends Controller
     public function index()
     {
         //
+        return response()->json([
+            'test' => 'test'
+        ]);
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreFoodRequest $request)
     {
-        //
+        $validatedData = $request->validated();
+        
+        $food = new Food([
+            'name' => $validatedData['name'],
+            'calories' => $validatedData['calories'],
+            'proteins' => $validatedData['proteins'],
+            'glucides' => $validatedData['glucides'],
+            'lipides' => $validatedData['lipides'],
+            'category' => $validatedData['category']
+        ]);
+        $ServiceFood = new FoodService();;
+        return $ServiceFood->store($food);
     }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Food $food)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Food $food)
-    {
-        //
-    }
-
     /**
      * Update the specified resource in storage.
      */

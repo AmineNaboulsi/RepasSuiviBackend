@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Food;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateMealRequest extends FormRequest
+class StoreFoodRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,4 +25,12 @@ class UpdateMealRequest extends FormRequest
             //
         ];
     }
+    $food = new Food([
+        'name' => $validatedData['name'],
+        'calories' => $validatedData['calories'],
+        'proteins' => $validatedData['proteins'],
+        'glucides' => $validatedData['glucides'],
+        'lipides' => $validatedData['lipides'],
+        'category' => $validatedData['category']
+    ]);
 }
