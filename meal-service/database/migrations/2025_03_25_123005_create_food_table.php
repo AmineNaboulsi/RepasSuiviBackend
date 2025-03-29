@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('food', function (Blueprint $table) {
             $table->id();
+            $table->string('image')->nullable();
             $table->string('name');
             $table->float('calories');
             $table->float('proteins');
             $table->float('glucides');
             $table->float('lipides');
-            $table->string('category');
+            $table->string('category')->nullable();;
             $table->timestamps();
         });
     }

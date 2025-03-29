@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Meal;
-use App\Http\Requests\StoreMealRequest;
-use App\Http\Requests\UpdateMealRequest;
+use App\Http\Requests\Meal\StoreMealRequest;
+use App\Http\Requests\Meal\UpdateMealRequest;
 
 class MealController extends Controller
 {

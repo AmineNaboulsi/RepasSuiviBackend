@@ -9,10 +9,16 @@ class Food extends Model
 {
     use HasFactory;
 
+   
     protected $fillable = [
-        'name',
-        'meal_type',
-        'meal_image',
+        'name', 'calories', 'proteins', 'glucides', 'lipides', 'category', 'image'
+    ];
+
+    protected $casts = [
+        'calories' => 'float',
+        'proteins' => 'float',
+        'glucides' => 'float',
+        'lipides' => 'float',
     ];
     public function meals()
     {

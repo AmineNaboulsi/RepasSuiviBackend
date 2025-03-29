@@ -22,15 +22,33 @@ class StoreFoodRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            "name" => "required|string|unique:food,name",
+            "calories" => "required|numeric",
+            "proteins" => "required|numeric",
+            "glucides" => "required|numeric",
+            "lipides" => "required|numeric",
+            "category" => "required|string|max:255",
+            "image" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048"
         ];
     }
-    $food = new Food([
-        'name' => $validatedData['name'],
-        'calories' => $validatedData['calories'],
-        'proteins' => $validatedData['proteins'],
-        'glucides' => $validatedData['glucides'],
-        'lipides' => $validatedData['lipides'],
-        'category' => $validatedData['category']
-    ]);
+    /**
+     * Get custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            "name.required" => "The name is required.",
+            "name.unique" => "The name must be unique.",
+            "calories.required" => "Les calories sont requises.",
+            "proteins.required" => "Les protéines sont requises.",
+            "glucides.required" => "Les glucides sont requis.",
+            "lipides.required" => "Les lipides sont requis.",
+            "category.required" => "La catégorie est requise.",
+            "image.image" => "Le fichier doit être une image.",
+            "image.mimes" => "L'image doit être au format jpeg, png, jpg ou gif.",
+            "image.max" => "L'image ne doit pas dépasser 2 Mo."
+        ];
+    }
 }

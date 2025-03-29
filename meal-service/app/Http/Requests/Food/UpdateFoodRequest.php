@@ -11,7 +11,7 @@ class UpdateFoodRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,29 @@ class UpdateFoodRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            "name" => "required|string|unique:food,name",
+            "calories" => "required|numeric",
+            "proteins" => "required|numeric",
+            "glucides" => "required|numeric",
+            "lipides" => "required|numeric",
+            "category" => "required|string|max:255",
+        ];
+    }
+    /**
+     * Get custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            "name.required" => "The name is required.",
+            "name.unique" => "The name must be unique.",
+            "calories.required" => "Calories are required.",
+            "proteins.required" => "Proteins are required.",
+            "glucides.required" => "Carbohydrates are required.",
+            "lipides.required" => "Lipids are required.",
+            "category.required" => "The category is required."
         ];
     }
 }
