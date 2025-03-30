@@ -8,8 +8,8 @@ use App\Models\Meal;
 use App\Repositories\MealRepository;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\MealResource;
-use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Http;
 
 class MealController extends Controller
 {
@@ -28,6 +28,18 @@ class MealController extends Controller
 
     public function store(StoreMealRequest $request): JsonResponse
     {
+        // $response = Http::post('http://cdc/api/resource', [
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
+        
+        // if ($response->successful()) {
+        //     $data = $response->json();
+        // } else {
+        //     $statusCode = $response->status();
+        //     $errorMessage = $response->body();
+        // }
+
         $meal = $this->mealRepository->create($request->validated());
         return response()->json(['message' => 'Meal created successfully', 'meal' => $meal], 201);
     }
