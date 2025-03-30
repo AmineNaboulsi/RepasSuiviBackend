@@ -7,7 +7,8 @@ const Register = async (req, res) => {
         console.log('Request Content-Type:', req.headers['content-type']);
         const bodyData = req.body;
         console.log('Sending data:', bodyData);
-        const response = await fetch(`${AUTH_SERVICE_URL}/register`,{
+        const url = process.env.AUTH_SERVICE_URL
+        const response = await fetch(`${url}/register`,{
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

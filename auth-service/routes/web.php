@@ -34,6 +34,7 @@ $router->post('/sent-verify-link', 'UserController@SendVerificationLink');
 $router->get('/verify-email', 'UserController@verifyEmail');
 
 $router->get('/verification-error', 'UserController@verificationError');
+$router->get('/already-verified', 'UserController@alreadyVerified');
 $router->get('/verification-success', 'UserController@verificationSuccess');
 
 $router->get('/users', function () use ($router) {

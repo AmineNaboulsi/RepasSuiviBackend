@@ -10,13 +10,6 @@ use Carbon\Carbon;
 
 class UserController extends Controller{
 
-    protected $authService;
-
-    public function __construct(AuthService $authService)
-    {
-        $this->authService = $authService;
-    }
-    
     public function register(Request $request)
     {
         try {
@@ -36,6 +29,7 @@ class UserController extends Controller{
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
+            $user->role = 'user';
             $user->password = app('hash')->make($request->password);
             $user->save();
 
@@ -59,6 +53,7 @@ class UserController extends Controller{
             ], 500);
         }
     }
+
     public function SendVerificationLink()
     {
         try {
@@ -92,6 +87,7 @@ class UserController extends Controller{
         }
 
     }
+
     public function verifyEmail(Request $request)
     {
         try {
@@ -116,10 +112,17 @@ class UserController extends Controller{
             return redirect('/verification-error?error=general');
         }
     }
+
     public function verificationSuccess(Request $request)  {
         $message = 'Your email has been verified successfully.';
         return view('verification.verification-success',compact('message'));
     }
+
+    public function alreadyVerified(Request $request)  {
+        $message = 'Your email is already verified .';
+        return view('verification.verification-success',compact('message'));
+    }
+
     public function verificationError(Request $request)  {
         $error = $request->input('error');
         $message ="";
