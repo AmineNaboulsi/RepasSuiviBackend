@@ -4,11 +4,34 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
-use App\Services\AuthService;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class UserController extends Controller{
+
+    public function login(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+
+            $credentials = $request->only('email', 'password');
+    
+            if (! $token = auth()->attempt($credentials)) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+            
+            return response()->json([
+                'token' => $token,
+            ], 200);
+    
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+    
 
     public function register(Request $request)
     {
@@ -45,7 +68,7 @@ class UserController extends Controller{
                 $message->to($user->email, $user->name)->subject("Welcome to RepasSuivi");
             });
 
-            return response()->json(['message' => 'User created successfully'], 201);
+            return response()->json(['message' => 'User created successfully' , 'token' => $token], 201);
 
         } catch (\Exception $e) {
             return response()->json([
