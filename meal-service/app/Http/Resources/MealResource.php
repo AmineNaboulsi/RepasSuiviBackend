@@ -24,10 +24,18 @@ class MealResource extends JsonResource
                     'user_id' => $meal->user_id,
                     'time' => Carbon::parse($meal->created_at)->format('H:i'),
                     'name' => $meal->name,
-                    'calories' => $meal->foods->sum('calories'),
-                    'protein' => $meal->foods->sum('proteins'),
-                    'carbs' => $meal->foods->sum('glucides'),
-                    'fat' => $meal->foods->sum('lipides'),
+                    'calories' => $meal->foods->sum(function($food){
+                        return $food->calories * $food->pivot->quantity; 
+                    }),
+                    'protein' => $meal->foods->sum(function($food) {
+                        return $food->proteins * $food->pivot->quantity;
+                    }),
+                    'carbs' => $meal->foods->sum(function($food) {
+                        return $food->glucides * $food->pivot->quantity;
+                    }),
+                    'fat' => $meal->foods->sum(function($food) {
+                        return $food->lipides * $food->pivot->quantity;
+                    }),
                     'items' => $meal->foods->pluck('name')->toArray(),
                     'meal_type' => $meal->meal_type
                 ];

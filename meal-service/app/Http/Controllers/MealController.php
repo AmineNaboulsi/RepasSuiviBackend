@@ -9,6 +9,8 @@ use App\Repositories\MealRepository;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\MealResource;
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 
 class MealController extends Controller
@@ -20,30 +22,19 @@ class MealController extends Controller
         $this->mealRepository = $mealRepository;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $meals = Meal::with('foods')->get();
+        $user = $request->attributes->get('user');
+        $meals = Meal::with('foods')->where('user_id' , $user->id)->get();
+        // return response()->json($meals);
         return response()->json(MealResource::collectionGroupedByDate($meals));
     }
 
     public function store(StoreMealRequest $request): JsonResponse
     {
-        $bearerToken = $request->bearerToken();
-
-        if (Redis::ping()) {
-            $user = Redis::get('auth:' . $bearerToken);
-            $user = json_decode($user, true);
-        } else {
-            return response()->json(['message' => 'Redis server is down'], 500);
-        }
         $mealdata = $request->validated();
-        $mealdata['meal']['user_id'] = $user['id'];
-
-        
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized: Invalid token'], 401);
-        }
-        
+        $user = $request->attributes->get('user');
+        $mealdata['meal']['user_id'] = $user->id;
         $meal = $this->mealRepository->create($mealdata);
         return response()->json(['message' => 'Meal created successfully', 'meal' => $meal], 201);
     }
@@ -57,7 +48,14 @@ class MealController extends Controller
 
     public function update(UpdateMealRequest $request, Meal $meal): JsonResponse
     {
-        $this->authorize('update', $meal);
+        try {
+            $this->authorize('update', $meal);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'message' => 'You are not authorized to update this meal',
+                'error' => $e->getMessage()
+            ], 403);
+        }
 
         $updatedMeal = $this->mealRepository->update($meal, $request->validated());
         return response()->json(['message' => 'Meal updated successfully', 'meal' => $updatedMeal]);

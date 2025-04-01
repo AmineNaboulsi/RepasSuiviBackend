@@ -11,8 +11,13 @@ class Meal extends Model
 
     protected $fillable = ['name', 'meal_type' ,'user_id'];
 
+    // public function foods()
+    // {
+    //     return $this->belongsToMany(Food::class , 'meal_items');
+    // }
     public function foods()
     {
-        return $this->belongsToMany(Food::class , 'meal_items');
+        return $this->belongsToMany(Food::class, 'meal_items')
+            ->withPivot('quantity', 'unite') ;
     }
 }

@@ -28,10 +28,12 @@ class AuthMiddleware
 
         $userData = Redis::get('auth:' . $bearerToken);
 
+        $userData = json_decode($userData);
+        
         if (!$userData) {
             return response()->json(['message' => 'Unauthorized: Invalid token'], 401);
         }
-        
+        $request->attributes->add(['user' => $userData]);
         return $next($request);
     }
 }

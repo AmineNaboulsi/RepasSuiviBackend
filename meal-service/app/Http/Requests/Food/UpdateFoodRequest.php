@@ -42,7 +42,7 @@ class UpdateFoodRequest extends FormRequest
             "name.unique" => "The name must be unique.",
             "calories.required" => "Calories are required.",
             "proteins.required" => "Proteins are required.",
-            "glucides.required" => "Carbohydrates are required.",
+            "glucides.required" => "glucides are required.",
             "lipides.required" => "Lipids are required.",
             "category.required" => "The category is required."
         ];

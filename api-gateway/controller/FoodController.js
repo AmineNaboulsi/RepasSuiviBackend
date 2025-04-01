@@ -82,6 +82,15 @@ const UploadFoodImage = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: "No image provided" });
         }
+             
+        const headers = {
+            ...formData.getHeaders()
+        };
+        if (req.headers.authorization) {
+            headers.Authorization = req.headers.authorization;
+        }
+        
+
 
         const formData = new FormData();
         formData.append("image", req.file.buffer, req.file.originalname);
@@ -90,9 +99,7 @@ const UploadFoodImage = async (req, res) => {
             `${mealServiceUrl}/api/food/${foodId}/upload`, 
             formData, 
             {
-                headers: { 
-                    ...formData.getHeaders()
-                }
+                headers
             }
         );
 
@@ -112,7 +119,13 @@ const UpdatedFood = async (req, res) => {
         const food = req.body;
 
         const mealServiceUrl = process.env.MEAL_SERVICE_URL;
-        const response = await axios.put(`${mealServiceUrl}/api/foods/${foodId}`, food);
+             
+        const headers = {};
+        if (req.headers.authorization) {
+            headers.Authorization = req.headers.authorization;
+        }
+        
+        const response = await axios.put(`${mealServiceUrl}/api/foods/${foodId}`, food , {headers});
         res.status(200).json(response.data);
     } catch (error) {
         console.error('Error updating food:', error);

@@ -10,7 +10,7 @@ const getMealbyId = async (req, res) => {
             headers.Authorization = req.headers.authorization;
         }
 
-        const response = await axios.get(`${mealServiceUrl}/api/meals/${mealId}` , {headers});
+        const response = await axios.get(`${mealServiceUrl}/api/meals/${mealId}` ,req.body,  {headers});
         res.status(200).json(response.data);
     } catch (error) {
         console.error('Error fetching meal by ID:', error);
@@ -27,7 +27,7 @@ const getMeals = async (req, res) => {
         if(req.headers.authorization){
             headers.Authorization = req.headers.authorization;
         }
-        const response = await axios.get(`${mealServiceUrl}/api/meals`,{headers});
+        const response = await axios.get(`${mealServiceUrl}/api/meals`,req.body, {headers});
         res.status(200).json(response.data);
     } catch (error) {
         console.error('Error fetching meals:', error);
@@ -41,34 +41,26 @@ const AddMeal = async (req, res) => {
         const mealData = req.body;
         console.log('✅ Received meal data:', mealData);
 
-        const headers = {};
+        const headers = {
+            'Content-Type': 'application/json'
+        };
 
         if(req.headers.authorization){
             headers.Authorization = req.headers.authorization;
         }
         const mealServiceUrl = process.env.MEAL_SERVICE_URL;
-
-        const response = await fetch(`${mealServiceUrl}/api/meals`, {
-            method: 'POST',
-            headers ,
-            body: JSON.stringify(mealData),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        try {
+            const response = await axios.post(`${mealServiceUrl}/api/meals`, mealData, { headers });
+            const data = response.data;
+            res.status(201).json(data);
+            console.log('✅ Meal added successfully:', data);
+        } catch (error) {
+            if (error.response && error.response.status === 422) {
+                res.status(422).json(error.response.data);
+            } else {
+                throw error;
+            }
         }
-
-        // let data;
-        // const contentType = response.headers.get('content-type');
-        // if (contentType && contentType.includes('application/json')) {
-        //     data = await response.json();
-        // } else {
-        //     data = await response.text();
-        // }
-        console.log('✅ Meal added successfully:', data);
-
-        // res.status(201).send(data);
-        res.status(201).json(data);
 
     } catch (error) {
         console.error('❌ Error adding meal:', error.message || error);
@@ -82,12 +74,56 @@ const AddMeal = async (req, res) => {
 
 const UpdatedMeal = async (req, res) => {
     
+    const { id } = req.params;
+    const mealServiceUrl = process.env.MEAL_SERVICE_URL;
+    try {
+
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if(req.headers.authorization){
+            headers.Authorization = req.headers.authorization;
+        }
+        
+        try {
+            const response = await axios.put(
+                `${mealServiceUrl}/api/meals/${id}`,
+                req.body,  
+                { headers } 
+              );
+
+            if (response.status === 200) {
+                res.status(200).json({ message: 'Meal deleted successfully' });
+            } else {
+                res.status(response.status).json({ message: 'Failed to delete meal' });
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 422) {
+                res.status(422).json(error.response.data);
+            } else {
+                // res.status(422).json("hna");
+                throw error;
+            }
+        }
+
+    } catch (error) {
+        console.error('Error deleting meal:', error);
+        res.status(error.response?.status || 500).json({
+            message: error.response?.data?.message || 'Error deleting meal'
+        });
+    }
+
 };
 const DeleteMeal = async (req, res) => {
     const { id } = req.params;
     const mealServiceUrl = process.env.MEAL_SERVICE_URL;
     try {
-        const response = await axios.delete(`${mealServiceUrl}/api/meals/${id}`);
+
+        const headers = {};
+        if(req.headers.authorization){
+            headers.Authorization = req.headers.authorization;
+        }
+        const response = await axios.delete(`${mealServiceUrl}/api/meals/${id}` , {headers});
         if (response.status === 200) {
             res.status(200).json({ message: 'Meal deleted successfully' });
         } else {

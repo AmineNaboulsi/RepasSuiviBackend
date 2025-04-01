@@ -21,8 +21,9 @@ class FoodController extends Controller
         $this->foodRepository = $foodRepository;
     }
 
-    public function index()
+    public function index(Request $request)
     {
+
         return FoodResource::collection(Food::all());
     }
 
