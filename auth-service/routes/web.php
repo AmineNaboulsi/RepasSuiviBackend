@@ -21,14 +21,11 @@ $router->get('/', function () use ($router) {
 $router->post('register', 'UserController@register');
 $router->post('login', 'UserController@login');
 
-$router->group(['prefix' => 'api'], function () use ($router) {
-
-    $router->group(['middleware' => 'auth'], function () use ($router) {
-    $router->get('me', 'App\Http\Controllers\UserController@me');
-    $router->post('logout', 'App\Http\Controllers\UserController@logout');
-
-    });
+$router->group(['middleware' => 'auth'], function () use ($router) {
+    $router->get('me', 'UserController@me');
+    $router->post('logout', 'UserController@logout');
 });
+
 
 $router->post('/sent-verify-link', 'UserController@SendVerificationLink');
 $router->get('/verify-email', 'UserController@verifyEmail');

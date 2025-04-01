@@ -1,6 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const redis = require('redis');
+
+
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+
+redisClient.on('error', (err) => {
+  console.log('Redis Client Error', err);
+});
+
+// Connect to Redis
+(async () => {
+  await redisClient.connect();
+  console.log('Connected to Redis');
+})();
 
 const RouterAuth = require('./routes/AuthRoute');
 const RouterMeal = require('./routes/MealRoute');
@@ -27,6 +43,7 @@ app.use('/api/foods',RouterFood);
 app.get("/", (req, res) => {
   res.send("API Gateway is running");
 });
+
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

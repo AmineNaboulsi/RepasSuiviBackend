@@ -37,7 +37,7 @@ class FoodPolicy
      */
     public function update(User $user, Food $food): bool
     {
-        //
+        
     }
 
     /**

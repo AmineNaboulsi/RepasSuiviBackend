@@ -9,22 +9,50 @@ use Carbon\Carbon;
 
 class UserController extends Controller{
 
+    public function me(Request $request) {
+        try {
+            $token = $request->bearerToken();
+
+            if (!$token) {
+                return response()->json(['message' => 'Token not provided'], 401);
+            }
+    
+            $payload = \Tymon\JWTAuth\Facades\JWTAuth::setToken($token)->getPayload();
+            $userId = $payload->get('sub'); 
+    
+            $user = \App\Models\User::find($userId);
+
+            if ($user) {
+                return response()->json($user, 200);
+            }
+            return response()->json([
+                'message' => "user not found"
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
     public function login(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
+            $validator= Validator::make($request->all(), [
                 'email' => 'required|email',
                 'password' => 'required',
             ]);
-
+       
+            if ($validator->fails()) {
+                return response()->json(['message' => $validator->errors()], 422);
+            }
             $credentials = $request->only('email', 'password');
     
             if (! $token = auth()->attempt($credentials)) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+                return response()->json(['error' => 'Account not found'], 401);
             }
             
             return response()->json([
                 'token' => $token,
+                'user' => auth()->user(),
             ], 200);
     
         } catch (\Exception $e) {

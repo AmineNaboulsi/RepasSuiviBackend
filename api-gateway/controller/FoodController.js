@@ -3,27 +3,40 @@ const FormData = require("form-data");
 
 const getFoods = async (req, res) => {
     try {
-        const mealServiceUrl = process.env.MEAL_SERVICE_URL ;
-        const response = await axios.get(`${mealServiceUrl}/api/foods`);
+        const mealServiceUrl = process.env.MEAL_SERVICE_URL;
+      
+        const headers = {};
+        if (req.headers.authorization) {
+            headers.Authorization = req.headers.authorization;
+        }
+        
+        const response = await axios.get(`${mealServiceUrl}/api/foods`, { headers });
         res.status(200).json(response.data);
     } catch (error) {
         console.error('Error fetching meals:', error);
         res.status(error.response?.status || 500).json({
-            message: error.response?.data?.message || 'Error fetching meal by ID'
+            message: error.response?.data?.message || 'Error fetching food'
         });
-}
+    }
 };
 
 const getFoodbyId = async (req, res) => {
     try {
             const mealId = req.params.id;
             const mealServiceUrl = process.env.MEAL_SERVICE_URL ;
-            const response = await axios.get(`${mealServiceUrl}/api/foods/${mealId}`);
+
+              
+            const headers = {};
+            if (req.headers.authorization) {
+                headers.Authorization = req.headers.authorization;
+            }
+            
+            const response = await axios.get(`${mealServiceUrl}/api/foods/${mealId}` , {headers});
             res.status(200).json(response.data);
         } catch (error) {
             console.error('Error fetching meal by ID:', error);
             res.status(error.response?.status || 500).json({
-                message: error.response?.data?.message || 'Error fetching meal by ID'
+                message: error.response?.data?.message || 'Error fetching food by ID'
             });
     }
 };

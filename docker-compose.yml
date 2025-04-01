@@ -6,10 +6,10 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    environment:
-      - AUTH_SERVICE_URL=http://auth-service:8000
-      - MEAL_SERVICE_URL=http://meal-service:8002
-      - ANALYTICS_SERVICE_URL=http://analytics-service:8004
+    # environment:
+    #   - AUTH_SERVICE_URL=http://auth-service:8000
+    #   - MEAL_SERVICE_URL=http://meal-service:8002
+    #   - ANALYTICS_SERVICE_URL=http://analytics-service:8004
     depends_on:
       - auth-service
     networks:
@@ -23,13 +23,27 @@ services:
       - DB_CONNECTION=pgsql
       - DB_HOST=auth-db
       - DB_PORT=5432
-      - DB_DATABASE=auth_db
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=secret
+      - DB_DATABASE=OfferAuth
+      - DB_USERNAME=OfferAuth
+      - DB_PASSWORD=OfferAuth
     ports:
-      - "8001:8000"
+      - "8484:8000"
     depends_on:
       - auth-db
+    networks:
+      - meal-tracker-network
+  meal-service:
+    build:
+      context: ./meal-service
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=meal-db
+      - DB_PORT=5432
+      - DB_DATABASE=MealsDB
+      - DB_USERNAME=MealsDB
+      - DB_PASSWORD=MealsDB
     networks:
       - meal-tracker-network
 
@@ -62,9 +76,11 @@ services:
       - meal-db-data:/var/lib/postgresql/data
     networks:
       - meal-tracker-network
-
   redis:
-    image: redis:alpine
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
     networks:
       - meal-tracker-network
 

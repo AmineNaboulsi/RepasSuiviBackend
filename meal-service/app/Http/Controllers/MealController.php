@@ -33,7 +33,6 @@ class MealController extends Controller
         if (Redis::ping()) {
             $user = Redis::get('auth:' . $bearerToken);
             $user = json_decode($user, true);
-
         } else {
             return response()->json(['message' => 'Redis server is down'], 500);
         }
@@ -58,6 +57,8 @@ class MealController extends Controller
 
     public function update(UpdateMealRequest $request, Meal $meal): JsonResponse
     {
+        $this->authorize('update', $meal);
+
         $updatedMeal = $this->mealRepository->update($meal, $request->validated());
         return response()->json(['message' => 'Meal updated successfully', 'meal' => $updatedMeal]);
     }

@@ -17,6 +17,10 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
+# RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd
+# RUN pecl install redis && docker-php-ext-enable redis
+
+
 # Set working directory
 WORKDIR /var/www/html
 
