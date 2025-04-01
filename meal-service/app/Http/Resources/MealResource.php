@@ -21,6 +21,7 @@ class MealResource extends JsonResource
             return $groupedMeals->map(function ($meal) {
                 return [
                     'id' => $meal->id,
+                    'user_id' => $meal->user_id,
                     'time' => Carbon::parse($meal->created_at)->format('H:i'),
                     'name' => $meal->name,
                     'calories' => $meal->foods->sum('calories'),

@@ -9,7 +9,7 @@ use App\Repositories\MealRepository;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\MealResource;
 use Exception;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Redis;
 
 class MealController extends Controller
 {
@@ -28,19 +28,24 @@ class MealController extends Controller
 
     public function store(StoreMealRequest $request): JsonResponse
     {
-        // $response = Http::post('http://cdc/api/resource', [
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-        
-        // if ($response->successful()) {
-        //     $data = $response->json();
-        // } else {
-        //     $statusCode = $response->status();
-        //     $errorMessage = $response->body();
-        // }
+        $bearerToken = $request->bearerToken();
 
-        $meal = $this->mealRepository->create($request->validated());
+        if (Redis::ping()) {
+            $user = Redis::get('auth:' . $bearerToken);
+            $user = json_decode($user, true);
+
+        } else {
+            return response()->json(['message' => 'Redis server is down'], 500);
+        }
+        $mealdata = $request->validated();
+        $mealdata['meal']['user_id'] = $user['id'];
+
+        
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized: Invalid token'], 401);
+        }
+        
+        $meal = $this->mealRepository->create($mealdata);
         return response()->json(['message' => 'Meal created successfully', 'meal' => $meal], 201);
     }
     

@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::apiResource('foods', FoodController::class);
-Route::post('food/{food:id}/upload', [FoodController::class, 'uploadImage']);
-Route::apiResource('meals', MealController::class);
+Route::middleware('redis.auth')->group(function () {
+    Route::apiResource('foods', FoodController::class);
+    Route::post('food/{food:id}/upload', [FoodController::class, 'uploadImage']);
+    Route::apiResource('meals', MealController::class);
+    // Route::post('test', function () {
+    //     return response()->json(['message' => 'Test route is working']);
+    // });
+});

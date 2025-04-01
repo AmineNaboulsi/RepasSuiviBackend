@@ -39,5 +39,7 @@ RUN a2enmod rewrite
 # Expose port 8000
 EXPOSE 8000
 
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 # Start Apache
 CMD ["apache2-foreground"]
