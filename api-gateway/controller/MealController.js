@@ -10,7 +10,7 @@ const getMealbyId = async (req, res) => {
             headers.Authorization = req.headers.authorization;
         }
 
-        const response = await axios.get(`${mealServiceUrl}/api/meals/${mealId}` ,req.body,  {headers});
+        const response = await axios.get(`${mealServiceUrl}/api/meals/${mealId}`,  {headers});
         res.status(200).json(response.data);
     } catch (error) {
         console.error('Error fetching meal by ID:', error);
@@ -27,7 +27,7 @@ const getMeals = async (req, res) => {
         if(req.headers.authorization){
             headers.Authorization = req.headers.authorization;
         }
-        const response = await axios.get(`${mealServiceUrl}/api/meals`,req.body, {headers});
+        const response = await axios.get(`${mealServiceUrl}/api/meals`, {headers});
         res.status(200).json(response.data);
     } catch (error) {
         console.error('Error fetching meals:', error);
@@ -39,7 +39,6 @@ const getMeals = async (req, res) => {
 const AddMeal = async (req, res) => {
     try {
         const mealData = req.body;
-        console.log('✅ Received meal data:', mealData);
 
         const headers = {
             'Content-Type': 'application/json'

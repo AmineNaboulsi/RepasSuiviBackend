@@ -22,24 +22,32 @@ class MealRepository implements MealRepositoryInterface
 
     public function create(array $data)
     {
-        if (isset($data['meal_image'])) {
-            $data['meal_image'] = $data['meal_image']->store('meals', 'public');
+        try {
+       
+            if (isset($data["meal"]['meal_image'])) {
+                $data['meal_image'] = $data['meal_image']->store('meals', 'public');
+            }
+            if (!isset($data["meal"]['meal_type'])) {
+                $data["meal"]['meal_type'] = $this->getMealType(Carbon::now());
+            }
+
+            $meal = Meal::create($data["meal"]);
+            $foodData = [];
+            foreach ($data['meal_items'] as $item) {
+                $foodData[$item['id']] = [
+                    'quantity' => $item['quantity']
+                ];
+            }
+
+            
+            $meal->foods()->attach($foodData);
+
+            return $meal;
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
         }
-        $data["meal"]['meal_type'] = $this->getMealType(Carbon::now());
 
-        $meal = Meal::create($data["meal"]);
-        $foodData = [];
-        foreach ($data['meal_items'] as $item) {
-            $foodData[$item['id']] = [
-                'quantity' => $item['quantity'],
-                'unite' => $item['unite']
-            ];
-        }
-
-        
-        $meal->foods()->attach($foodData);
-
-        return $meal;
     }
     private function getMealType($date)
     {

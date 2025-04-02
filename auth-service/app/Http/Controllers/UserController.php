@@ -96,7 +96,12 @@ class UserController extends Controller{
                 $message->to($user->email, $user->name)->subject("Welcome to RepasSuivi");
             });
 
-            return response()->json(['message' => 'User created successfully' , 'token' => $token], 201);
+            return response()->json(
+                [
+                    'message' => 'User created successfully' ,
+                    'token' => $token ,
+                    'user' => auth()->user(),
+                ], 201);
 
         } catch (\Exception $e) {
             return response()->json([

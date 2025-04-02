@@ -28,7 +28,6 @@ class StoreMealRequest extends FormRequest
             "meal_items" => 'nullable|array|min:1',
             "meal_items.*.id" => 'required|exists:food,id',
             "meal_items.*.quantity" => 'required|integer|min:1',
-            "meal_items.*.unite" => 'required|string',
         ];
     }
 
@@ -50,9 +49,6 @@ class StoreMealRequest extends FormRequest
             "meal_items.*.quantity.required" => "Quantity is required",
             "meal_items.*.quantity.integer" => "Quantity must be an integer",
             "meal_items.*.quantity.min" => "Quantity must be at least 1",
-            "meal_items.*.unite.required" => "Unit is required",
-            "meal_items.*.unite.string" => "Unit must be a string",
-            "meal_items.*.unite.in" => "Unit must be one of the following: g, kg, ml, l, oz, lb",
         ];
     }
 

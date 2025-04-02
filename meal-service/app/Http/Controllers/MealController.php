@@ -33,6 +33,7 @@ class MealController extends Controller
     public function store(StoreMealRequest $request): JsonResponse
     {
         $mealdata = $request->validated();
+        
         $user = $request->attributes->get('user');
         $mealdata['meal']['user_id'] = $user->id;
         $meal = $this->mealRepository->create($mealdata);

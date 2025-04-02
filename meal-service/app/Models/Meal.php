@@ -18,6 +18,6 @@ class Meal extends Model
     public function foods()
     {
         return $this->belongsToMany(Food::class, 'meal_items')
-            ->withPivot('quantity', 'unite') ;
+            ->withPivot('quantity') ;
     }
 }

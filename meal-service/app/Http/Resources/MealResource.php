@@ -37,7 +37,7 @@ class MealResource extends JsonResource
                         return $food->lipides * $food->pivot->quantity;
                     }),
                     'items' => $meal->foods->pluck('name')->toArray(),
-                    'meal_type' => $meal->meal_type
+                    'type' => $meal->meal_type
                 ];
             });
         })->toArray();

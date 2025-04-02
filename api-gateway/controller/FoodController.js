@@ -24,7 +24,6 @@ const getFoodbyId = async (req, res) => {
     try {
             const mealId = req.params.id;
             const mealServiceUrl = process.env.MEAL_SERVICE_URL ;
-
               
             const headers = {};
             if (req.headers.authorization) {
@@ -50,6 +49,7 @@ const AddFood = async (req, res) => {
             formData.append(key, req.body[key]);
         }
 
+
         if (req.file) {
             formData.append("image", req.file.buffer, {
                 filename: req.file.originalname,
@@ -59,12 +59,13 @@ const AddFood = async (req, res) => {
 
         const mealServiceUrl = process.env.MEAL_SERVICE_URL;
         
+        const headers = {};
+        if (req.headers.authorization) {
+            headers.Authorization = req.headers.authorization;
+        }
         const response = await axios.post(`${mealServiceUrl}/api/foods`, formData, {
-            headers: {
-                ...formData.getHeaders()
-            }
+            headers
         });
-
         res.status(200).json(response.data);
     } catch (error) {
         console.error("Error adding food:", error.response?.data || error);

@@ -9,7 +9,7 @@ class MealItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['meal_id', 'food_id', 'quantity', 'unite'];
+    protected $fillable = ['meal_id', 'food_id', 'quantity'];
 
     protected $casts = [
         'quantity' => 'integer',

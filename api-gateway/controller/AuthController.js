@@ -74,9 +74,6 @@ const Login = async (req, res) => {
       console.log('Token stored successfully:', !!verifyStorage);
 
     }
-    await redisClient.set('testKey', 'Hello from Node.js');
-    const value = await redisClient.get('testKey');
-    console.log(value)
     return res.status(response.status).json(data);
   } catch (error) {
     console.error('Auth service error:', error.message);
@@ -106,6 +103,15 @@ const Register = async (req, res) => {
     });
     const data = await response.json();
 
+      if (response.ok && data.token) {
+      console.log(data);
+        // await redisClient.set(`auth:${data.token}`, JSON.stringify(data.user), { EX: 3600 })
+      await redisClient.set(`auth:${data.token}`, JSON.stringify(data.user));
+      
+      const verifyStorage = await redisClient.get(`auth:${data.token}`);
+      console.log('Token stored successfully:', !!verifyStorage);
+
+    }
     return res.status(response.status).json(data);
   } catch (error) {
     console.error('Auth service error:', error.message);

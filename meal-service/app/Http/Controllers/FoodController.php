@@ -23,8 +23,7 @@ class FoodController extends Controller
 
     public function index(Request $request)
     {
-
-        return FoodResource::collection(Food::all());
+        return FoodResource::collection(Food::take(5)->get());
     }
 
     public function store(StoreFoodRequest $request)
@@ -35,11 +34,19 @@ class FoodController extends Controller
 
     public function show($id)
     {
-        $food = Food::find($id);
-        if (!$food) {
-            return response()->json(['message' => 'Food item not found'], 404);
+        if(is_numeric($id)){
+            $food = Food::find($id);
+            if (!$food) {
+                return response()->json(['message' => 'Food item not found'], 404);
+            }
+            return new FoodResource($food);
+        } else {
+            $foods = Food::where('name', 'like', "%$id%")->take(5)->get();
+            if ($foods->isEmpty()) {
+                return response()->json(['message' => 'No food(s) items found matching your search'], 404);
+            }
+            return FoodResource::collection($foods);
         }
-        return response()->json($this->foodRepository->getById($id));
     }
 
     public function update(UpdateFoodRequest $request, $id)
