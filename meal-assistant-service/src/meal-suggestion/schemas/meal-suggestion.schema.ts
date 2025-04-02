@@ -6,20 +6,17 @@ export type MealSuggestionDocument = MealSuggestion & Document;
 @Schema()
 export class MealSuggestion {
 
-    @Prop({ required: true })
-    name: object;
+    @Prop({ required: false })
+    aiAgent: string;
 
-    @Prop()
-    mealSuggestion: object;
+    @Prop({ required: true , type : Object})
+    mealSuggestion: Record<string, any>;
 
-    @Prop()
+    @Prop({ required: false })
     status : boolean
-
-    @Prop()
-    is_accepted : boolean
     
-    @Prop({ required: true })
-    image: object;
+    @Prop({type: Boolean , required : false})
+    is_accepted : boolean
 
     @Prop({ required: false })
     createAt: Date;

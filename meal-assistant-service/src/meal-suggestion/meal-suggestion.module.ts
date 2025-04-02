@@ -9,4 +9,5 @@ import { MealSuggestion, MealSuggestionSchema } from './schemas/meal-suggestion.
   controllers: [MealSuggestionController],
   providers: [MealSuggestionService],
 })
+
 export class MealSuggestionModule {}

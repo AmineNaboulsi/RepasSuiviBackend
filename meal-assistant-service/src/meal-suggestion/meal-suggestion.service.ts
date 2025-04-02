@@ -1,11 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMealSuggestionDto } from './dto/create-meal-suggestion.dto';
 import { UpdateMealSuggestionDto } from './dto/update-meal-suggestion.dto';
+import { Model } from 'mongoose';
+import { MealSuggestion, MealSuggestionDocument } from './schemas/meal-suggestion.schema';
+import { InjectModel } from '@nestjs/mongoose';
+
 
 @Injectable()
 export class MealSuggestionService {
-  create(createMealSuggestionDto: CreateMealSuggestionDto) {
-    return 'This action adds a new mealSuggestion';
+
+  constructor(@InjectModel(MealSuggestion.name) private mealModel: Model<MealSuggestionDocument>) {}
+
+  async create(createMealSuggestionDto: CreateMealSuggestionDto): Promise<MealSuggestion> {
+    const newMeal = new this.mealModel(createMealSuggestionDto);
+    return newMeal.save();
+
   }
 
   findAll() {
