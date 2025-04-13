@@ -18,8 +18,8 @@ $router->get('/', function () use ($router) {
     return response()->json(['message' => 'Auth Service']);
 });
 
-$router->post('register', 'UserController@register');
-$router->post('login', 'UserController@login');
+$router->post('/api/auth/register', 'UserController@register');
+$router->post('/api/auth/login', 'UserController@login');
 
 $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->get('me', 'UserController@me');

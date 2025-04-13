@@ -1,21 +1,35 @@
-const Redis = require('ioredis');
+const redis = require('redis');
+const client = redis.createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
+});
 
-const redis = new Redis({ host: 'redis', port: 6379 });
+client.connect().catch((err) => console.error('Redis connection error:', err));
 
+const authMiddleware = async (req, res, next) => {
+  try {
+    // Extract token from Authorization header (e.g., "Bearer <token>")
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
 
-const VerifyToken = async (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+    // Check token in Redis
+    const userData = await client.get(`auth:${token}`);
+    if (!userData) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
 
-  if (!token) return res.status(401).json({ error: "Unauthorized" });
+    // Parse user data and attach to request
+    req.user = JSON.parse(userData);
 
-  const cachedUser = await redis.get(`auth:${token}`);
+    // Optionally, add user info to headers for downstream services
+    req.headers['x-user-info'] = JSON.stringify(req.user);
 
-  if (cachedUser) {
-    req.user = JSON.parse(cachedUser); 
-    return next(); 
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error.message);
+    res.status(500).json({ error: 'Authentication failed' });
   }
-
-  return res.status(401).json({ error: "Session expired or invalid token" });
 };
 
-module.exports = VerifyToken;
+module.exports =  authMiddleware;
