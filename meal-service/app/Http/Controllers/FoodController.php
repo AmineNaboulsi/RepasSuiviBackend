@@ -23,7 +23,11 @@ class FoodController extends Controller
 
     public function index(Request $request)
     {
-        return FoodResource::collection(Food::take(5)->get());
+        try{
+            return response()->json(FoodResource::collection(Food::take(5)->get()), 200);
+        }catch(\Exception $e){
+            return response()->json(['message' => 'Error fetching food items'], 500);
+        }
     }
 
     public function store(StoreFoodRequest $request)
@@ -70,12 +74,12 @@ class FoodController extends Controller
             return response()->json(['message' => 'Food item not found'], 404);
         }
         try {
-            $this->foodRepository->updatefoodimage($food, $request->file('image'));
+            return $this->foodRepository->updatefoodimage($food, $request->file('image'));
+            // return response()->json(['message' => 'Image uploaded successfully'], 200);
 
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 404);
         }
-        return response()->json(['message' => 'Image uploaded successfully'], 200);
         
     }
     public function destroy($id)

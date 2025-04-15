@@ -100,7 +100,7 @@ class UserController extends Controller{
                 [
                     'message' => 'User created successfully' ,
                     'token' => $token ,
-                    'user' => auth()->user(),
+                    'user' => $user,
                 ], 201);
 
         } catch (\Exception $e) {
@@ -121,7 +121,14 @@ class UserController extends Controller{
             if ($user === null) {
                 return response()->json(['message' => 'User not found'], 404);
             }
-
+            if ($user->email_verified_at !== null) {
+                return response()->json(
+                    [
+                        'message' => 'Email already verified' ,
+                        'isVerified' => true
+                    ]
+                    , 422);
+            }
             $token = \Tymon\JWTAuth\Facades\JWTAuth::fromUser($user);
 
             $data = array(
@@ -134,7 +141,12 @@ class UserController extends Controller{
                 $message->to($user->email, $user->name)->subject("Welcome to RepasSuivi");
             });
 
-            return response()->json(['message' => 'Verification link sent successfully'], 200);
+            return response()->json(
+                [
+                    'message' => 'A new verification email has been sent.',
+                    'isVerified' => false
+                ], 200
+            );
 
         } catch (\Exception $e) {
             return response()->json([
@@ -153,34 +165,42 @@ class UserController extends Controller{
             $user = \App\Models\User::find($userId);
 
             if ($user->email_verified_at !== null) {
-                return redirect(env('FRONTEND_URL') . '/already-verified');
+                $this->alreadyVerified();
             }
 
             $user->email_verified_at = Carbon::now();
             $user->save();
 
             return redirect('/verification-success');
+            $this->verificationSuccess();
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-            return redirect('/verification-error?error=expired');
+            $this->verificationError('expired');
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-            return redirect('/verification-error?error=invalid');
+            $this->verificationError('invalid');
         } catch (\Exception $e) {
-            return redirect('/verification-error?error=general');
+            $this->verificationError('general');
         }
     }
 
-    public function verificationSuccess(Request $request)  {
+    public function verificationSuccess()  {
         $message = 'Your email has been verified successfully.';
-        return view('verification.verification-success',compact('message'));
+        return response()->json(
+            [
+                'message' =>$message
+            ], 200
+        );
     }
 
-    public function alreadyVerified(Request $request)  {
+    public function alreadyVerified()  {
         $message = 'Your email is already verified .';
-        return view('verification.verification-success',compact('message'));
+        return response()->json(
+            [
+                'message' =>$message
+            ], 200
+        );
     }
 
-    public function verificationError(Request $request)  {
-        $error = $request->input('error');
+    public function verificationError($error)  {
         $message ="";
         if ($error === 'expired') {
             $message = 'The verification link has expired.';
@@ -189,6 +209,10 @@ class UserController extends Controller{
         } else {
             $message = 'An error occurred while verifying your email.';
         }
-        return view('verification.verification-success',compact('message'));
+        return response()->json(
+            [
+                'message' =>$message
+            ], 200
+        );
     }
 }

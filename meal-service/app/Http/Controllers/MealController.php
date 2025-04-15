@@ -24,8 +24,8 @@ class MealController extends Controller
 
     public function index(Request $request)
     {
-        $user = $request->attributes->get('user');
-        $meals = Meal::with('foods')->where('user_id' , $user->id)->get();
+        $userId = $request->userId;
+        $meals = Meal::with('foods')->where('user_id' , $userId)->get();
         // return response()->json($meals);
         return response()->json(MealResource::collectionGroupedByDate($meals));
     }
@@ -34,8 +34,8 @@ class MealController extends Controller
     {
         $mealdata = $request->validated();
         
-        $user = $request->attributes->get('user');
-        $mealdata['meal']['user_id'] = $user->id;
+        $userId = $request->userId;
+        $mealdata['meal']['user_id'] = $userId;
         $meal = $this->mealRepository->create($mealdata);
         return response()->json(['message' => 'Meal created successfully', 'meal' => $meal], 201);
     }

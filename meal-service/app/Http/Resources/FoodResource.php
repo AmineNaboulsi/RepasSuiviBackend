@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class FoodResource extends JsonResource
 {
@@ -17,7 +18,7 @@ class FoodResource extends JsonResource
             'glucides' => $this->glucides,
             'lipides' => $this->lipides,
             'category' => $this->category,
-            'image_url' => $this->image ? asset('storage/' . $this->image) : null,
+            'image_url' => Storage::disk('s3')->url($this->image),
             'created_at' => $this->created_at->toDateTimeString(),
         ];
     }
