@@ -76,6 +76,20 @@ services:
       - meal-db-data:/var/lib/postgresql/data
     networks:
       - meal-tracker-network
+  nutrition-db:
+    image: postgres:17
+    container_name: NutritionDB
+    restart: always
+    environment:
+      POSTGRES_DB: "NutritionDB"
+      POSTGRES_USER: "NutritionDB"
+      POSTGRES_PASSWORD: "NutritionDB"
+    ports:
+      - "5439:5432"
+    volumes:
+      - nutrition-db-data:/var/lib/postgresql/data
+    networks:
+      - meal-tracker-network
   redis:
     image: redis:latest
     restart: always
@@ -93,4 +107,5 @@ volumes:
   user-db-data:
   portainer-data:
   meal-db-data:
+  nutrition-db-data:
   

@@ -205,7 +205,7 @@ const routes = [
   {
     path: '/api/weight-records',
     method: 'get',
-    serviceUrl: `${process.env.MEAL_SERVICE_URL}/api/weight-records`,
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/weight-records`,
     middleware: authMiddleware
   }
 ];

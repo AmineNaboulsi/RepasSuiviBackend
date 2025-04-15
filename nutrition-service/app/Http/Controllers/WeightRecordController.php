@@ -28,12 +28,12 @@ class WeightRecordController extends Controller
     {
         if($date = $request->input('date')){
             if($request->input('f')){
-                $weightRecords = $this->weightRecordRepository->SearchByDate($request->attributes->get('user')->id , $date);
+                $weightRecords = $this->weightRecordRepository->SearchByDate($request->userId , $date);
                 return response()->json(WeightRecordeResource::collection($weightRecords));
             }
-            $weightRecords = $this->weightRecordRepository->DateFilter($request->attributes->get('user')->id , $date);
+            $weightRecords = $this->weightRecordRepository->DateFilter($request->userId , $date);
         }else{
-            $weightRecords = $this->weightRecordRepository->getUserWeightRecords($request->attributes->get('user')->id);
+            $weightRecords = $this->weightRecordRepository->getUserWeightRecords($request->userId);
         }
         
         return response()->json(WeightRecordeResource::collection($weightRecords));
@@ -52,7 +52,7 @@ class WeightRecordController extends Controller
             ]);
         }
 
-        $weightData['user_id'] = $request->attributes->get('user')->id;
+        $weightData['user_id'] = $request->userId;
         $result = $this->weightRecordRepository->create($weightData);
         
         return response()->json([
