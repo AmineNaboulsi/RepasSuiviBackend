@@ -160,6 +160,13 @@ const routes = [
     method: 'post',
     serviceUrl: `${process.env.MEAL_SERVICE_URL}/api/food/:id/upload`,
   },
+  ,
+  {
+    path: '/api/foods/:name',
+    method: 'get',
+    serviceUrl: `${process.env.MEAL_SERVICE_URL}/api/foods/:name`,
+    middleware: authMiddleware
+  },
   {
     path: '/api/foods',
     method: 'get',
@@ -198,6 +205,18 @@ const routes = [
   },
   {
     path: '/api/meals/:id',
+    method: 'delete',
+    serviceUrl: `${process.env.MEAL_SERVICE_URL}/api/meals/:id`,
+    middleware: authMiddleware
+  },
+  {
+    path: '/api/getcaloroystrend',
+    method: 'get',
+    serviceUrl: `${process.env.MEAL_SERVICE_URL}/api/getcaloroystrend`,
+    middleware: authMiddleware
+  },
+  {
+    path: '/api/meals/:id',
     method: 'put',
     serviceUrl: `${process.env.MEAL_SERVICE_URL}/api/meals/:id`,
     middleware: authMiddleware
@@ -208,6 +227,14 @@ const routes = [
     serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/weight-records`,
     middleware: authMiddleware
   }
+  ,
+  {
+    path: '/api/weight-records',
+    method: 'post',
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/weight-records`,
+    middleware: authMiddleware
+  }
+  
 ];
 
 const FormData = require('form-data');
@@ -225,7 +252,8 @@ const genericHandler = async (req, res, route) => {
     }).toString();
     
     url += `?${queryParams}`;
-    
+
+    console.log(`Forwarding request to ${url}`);
     const isMultipart = req.headers['content-type']?.includes('multipart/form-data');
 
     let axiosConfig = {
@@ -236,7 +264,6 @@ const genericHandler = async (req, res, route) => {
         'Authorization': req.headers.authorization || '',
       },
     };
-
     if (isMultipart) {
       const form = new FormData();
 

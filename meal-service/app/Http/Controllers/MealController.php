@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Food\getCaloriesTrend;
 use App\Http\Requests\Meal\StoreMealRequest;
 use App\Http\Requests\Meal\UpdateMealRequest;
 use App\Models\Meal;
 use App\Repositories\MealRepository;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\MealResource;
+use App\Http\Resources\mealsTrends;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -32,12 +34,16 @@ class MealController extends Controller
 
     public function store(StoreMealRequest $request): JsonResponse
     {
-        $mealdata = $request->validated();
-        
-        $userId = $request->userId;
-        $mealdata['meal']['user_id'] = $userId;
-        $meal = $this->mealRepository->create($mealdata);
-        return response()->json(['message' => 'Meal created successfully', 'meal' => $meal], 201);
+        try{
+            $mealdata = $request->validated();
+            
+            $userId = $request->userId;
+            $mealdata['meal']['user_id'] = $userId;
+            $meal = $this->mealRepository->create($mealdata);
+            return response()->json(['message' => 'Meal created successfully', 'meal' => $meal], 201);
+        }catch(\Exception $e){
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
     
   
@@ -47,6 +53,22 @@ class MealController extends Controller
         return new MealResource($meal);
     }
 
+    public function getCaloroysTrend(getCaloriesTrend $request){
+        try{
+            $request->validated();
+            $userId = $request->userId;
+            $meals = $this->mealRepository->getCaloroysTrendbyDate($request->date , $userId);
+            return response()->json(
+                new mealsTrends($meals) 
+                // $meals
+            );
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
     public function update(UpdateMealRequest $request, Meal $meal): JsonResponse
     {
         try {

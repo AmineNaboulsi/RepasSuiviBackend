@@ -190,6 +190,53 @@ class UserController extends Controller{
             ], 200
         );
     }
+    // $table->string('image')->nullable();
+    // $table->date('birthay')->nullable();
+    // $table->decimal('height', 8, 2)->nullable();
+    // $table->string('role');
+    // $table->string('email')->unique();
+    // $table->string('password');
+    public function fillUserinfo(Request $request){
+        try {
+            $validator = Validator::make($request->all(), [
+                'image' => 'nullable|string',
+                'height' => 'nullable|numeric',
+                'birthday' => 'nullable|date',
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json(['message' => $validator->errors()], 422);
+            }
+            
+            $user = User::find($request->userId);
+            
+            if (!$user) {
+                return response()->json(['message' => 'User not found'], 404);
+            }
+            
+            if ($request->has('image')) {
+                $user->image = $request->image;
+            }
+            
+            if ($request->has('height')) {
+                $user->height = $request->height;
+            }
+            
+            if ($request->has('birthday')) {
+                $user->birthday = $request->birthday;
+            }
+            
+            $user->save();
+            
+            return response()->json([
+                'message' => 'User information updated successfully',
+                'user' => $user
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
 
     public function alreadyVerified()  {
         $message = 'Your email is already verified .';

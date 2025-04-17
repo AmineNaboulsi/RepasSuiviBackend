@@ -18,8 +18,9 @@ use Illuminate\Support\Facades\Route;
 Route::apiResource('foods', FoodController::class);
 Route::post('food/{food:id}/upload', [FoodController::class, 'uploadImage']);
 Route::apiResource('meals', MealController::class);
+Route::get('getcaloroystrend', [MealController::class , 'getCaloroysTrend']);
 
 
-Route::get('test', function () {
+Route::get('/', function () {
     return response()->json(['message' => 'Test route is working']);
 });

@@ -21,22 +21,13 @@ $router->get('/', function () use ($router) {
 $router->post('/api/auth/register', 'UserController@register');
 $router->post('/api/auth/login', 'UserController@login');
 
-$router->group(['middleware' => 'auth'], function () use ($router) {
-    $router->get('me', 'UserController@me');
-    $router->post('logout', 'UserController@logout');
-});
-
-
 $router->post('/sent-verify-link', 'UserController@SendVerificationLink');
 $router->get('/verify-email', 'UserController@verifyEmail');
 
 $router->get('/verification-error', 'UserController@verificationError');
 $router->get('/already-verified', 'UserController@alreadyVerified');
 $router->get('/verification-success', 'UserController@verificationSuccess');
-
-$router->get('/users', function () use ($router) {
-    return User::all();
-});
+$router->post('/filluserinfo', 'UserController@fillUserinfo');
 
 $router->get('{any: .*}', function () {
     return response()->json([
