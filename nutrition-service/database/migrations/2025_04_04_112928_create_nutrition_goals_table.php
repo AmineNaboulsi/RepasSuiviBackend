@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('nutrition_goals', function (Blueprint $table) {
             $table->id();
-            $table->integer('dailyCalorieTarget')->nullable();
             $table->float('proteinTarget')->nullable();
             $table->float('carbTarget')->nullable();
             $table->float('fatTarget')->nullable();

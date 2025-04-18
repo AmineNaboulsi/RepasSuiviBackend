@@ -171,8 +171,7 @@ class UserController extends Controller{
             $user->email_verified_at = Carbon::now();
             $user->save();
 
-            return redirect('/verification-success');
-            $this->verificationSuccess();
+             return $this->verificationSuccess();
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             $this->verificationError('expired');
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {

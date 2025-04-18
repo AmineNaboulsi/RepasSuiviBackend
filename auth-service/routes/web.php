@@ -22,7 +22,7 @@ $router->post('/api/auth/register', 'UserController@register');
 $router->post('/api/auth/login', 'UserController@login');
 
 $router->post('/sent-verify-link', 'UserController@SendVerificationLink');
-$router->get('/verify-email', 'UserController@verifyEmail');
+$router->get('/verifyemail', 'UserController@verifyEmail');
 
 $router->get('/verification-error', 'UserController@verificationError');
 $router->get('/already-verified', 'UserController@alreadyVerified');

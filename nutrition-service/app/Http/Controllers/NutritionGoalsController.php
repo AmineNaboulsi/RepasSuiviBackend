@@ -5,23 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\NutritionGoals;
 use App\Http\Requests\StoreNutritionGoalsRequest;
 use App\Http\Requests\UpdateNutritionGoalsRequest;
+use App\Repositories\NutritionGoalsRepository;
 
 class NutritionGoalsController extends Controller
 {
+    protected $nutritionGoalsRepository;
+
+    public function __construct(NutritionGoalsRepository $nutritionGoalsRepository)
+    {
+        $this->nutritionGoalsRepository = $nutritionGoalsRepository;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return $this->nutritionGoalsRepository->getAll();
     }
 
     /**
@@ -29,38 +29,44 @@ class NutritionGoalsController extends Controller
      */
     public function store(StoreNutritionGoalsRequest $request)
     {
-        //
+        $nutitiongoals = $request->validated();
+        //add use id from request
+        $nutitiongoals['user_id'] = $request->userId;
+         try{
+             return $this->nutritionGoalsRepository->create($nutitiongoals);
+         }catch(\Exception $e){
+            return response()->json(['error' => 'A nutrition goal already exists within this date range.'], 400);
+         }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(NutritionGoals $nutritionGoals)
+    public function show($id)
     {
-        //
+        return $this->nutritionGoalsRepository->getById($id);
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(NutritionGoals $nutritionGoals)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateNutritionGoalsRequest $request, NutritionGoals $nutritionGoals)
-    {
-        //
-    }
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(NutritionGoals $nutritionGoals)
+    public function destroy($id)
     {
-        //
+        return $this->nutritionGoalsRepository->delete($id);
+    }
+
+    /**
+     * Get goals for a specific user
+     */
+    public function getUserGoals($userId)
+    {
+        return $this->nutritionGoalsRepository->getUserGoals($userId);
+    }
+
+    /**
+     * Get current active goal for a user
+     */
+    public function getCurrentGoal($userId)
+    {
+        return $this->nutritionGoalsRepository->getCurrentGoal($userId);
     }
 }

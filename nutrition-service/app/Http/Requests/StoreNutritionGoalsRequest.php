@@ -11,9 +11,8 @@ class StoreNutritionGoalsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -22,7 +21,11 @@ class StoreNutritionGoalsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'proteinTarget' => 'required|numeric',
+            'carbTarget' => 'required|numeric',
+            'fatTarget' => 'required|numeric',
+            'startDate' => 'required|date',
+            'endDate' => 'required|date|after_or_equal:startDate',
         ];
     }
 }

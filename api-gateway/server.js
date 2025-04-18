@@ -146,9 +146,9 @@ const Register = async (req, res) => {
 
 const routes = [
   {
-    path: '/verify-email',
+    path: '/verifyemail',
     method: 'get',
-    serviceUrl: `${process.env.AUTH_SERVICE_URL}/verify-email`,
+    serviceUrl: `${process.env.AUTH_SERVICE_URL}/verifyemail`,
   },
   {
     path: '/sent-verify-link',
@@ -229,12 +229,25 @@ const routes = [
   }
   ,
   {
-    path: '/api/weight-records',
-    method: 'post',
-    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/weight-records`,
+    path: '/api/nutritiongoeals',
+    method: 'get',
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/nutritiongoeals`,
     middleware: authMiddleware
   }
-  
+  ,
+  {
+    path: '/api/nutritiongoeals',
+    method: 'post',
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/nutritiongoeals`,
+    middleware: authMiddleware
+  }
+  ,
+  {
+    path: '/api/nutritiongoeals/:id',
+    method: 'delete',
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/nutritiongoeals/:id`,
+    middleware: authMiddleware
+  }
 ];
 
 const FormData = require('form-data');
