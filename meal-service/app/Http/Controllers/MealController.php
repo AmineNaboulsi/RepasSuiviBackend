@@ -10,6 +10,7 @@ use App\Repositories\MealRepository;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\MealResource;
 use App\Http\Resources\mealsTrends;
+use App\Repositories\Interfaces\MealRepositoryInterface;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -19,16 +20,17 @@ class MealController extends Controller
 {
     protected $mealRepository;
 
-    public function __construct(MealRepository $mealRepository)
+    public function __construct(MealRepositoryInterface $userRepo)
     {
-        $this->mealRepository = $mealRepository;
+        $this->mealRepository = $userRepo;
     }
 
     public function index(Request $request)
     {
         $userId = $request->userId;
-        $meals = Meal::with('foods')->where('user_id' , $userId)->get();
-        // return response()->json($meals);
+        $meals = Meal::with(['foods' => function($query) {
+            $query->withPivot('quantity','unite');
+        }])->where('user_id', $userId)->get();
         return response()->json(MealResource::collectionGroupedByDate($meals));
     }
 

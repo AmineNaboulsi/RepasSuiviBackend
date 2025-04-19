@@ -7,7 +7,7 @@ const multer = require('multer');
 const upload = multer();
 const redis = require('redis');
 const cors = require('cors');
-
+const AuthRoute = require('./routes/AuthRoute');
 app.use(cors());
 app.use(upload.any());
 
@@ -30,119 +30,6 @@ redisClient.on('error', (err) => {
   await redisClient.connect();
   console.log('Connected to Redis');
 })();
-
-const getUserFromRedis = async (token) => {
-  try {
-    console.log(`Searching for token: auth:${token}`);
-    const exists = await redisClient.exists(`auth:${token}`);
-    console.log(`Token exists in Redis: ${exists}`);
-    
-    const user = await redisClient.get(`auth:${token}`);
-    console.log(`Retrieved data: ${user}`);
-    
-    if (user) {
-      return JSON.parse(user);
-    } else {
-      throw new Error('Token not found or expired');
-    }
-  } catch (error) {
-    console.error('Error retrieving from Redis:', error.message);
-    throw error;
-  }
-};
-const getUser = async (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1]; 
-
-  if (!token) {
-    return res.status(400).json({ message: 'Token is required' });
-  }
-
-  try {
-    const user = await getUserFromRedis(token);
-
-    return res.status(200).json({
-      message: 'User data retrieved successfully',
-      user: user
-    });
-  } catch (error) {
-    return res.status(404).json({ message: error.message }); 
-  }
-};
-
-const Login = async (req, res) => {
-  try {
-    const bodyData = req.body;
-    const url = process.env.AUTH_SERVICE_URL;
-    const response = await fetch(`${url}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(bodyData)
-    });
-    const data = await response.json();
-
-    if (response.ok && data.token) {
-      console.log(data);
-        // await redisClient.set(`auth:${data.token}`, JSON.stringify(data.user), { EX: 3600 })
-      await redisClient.set(`auth:${data.token}`, JSON.stringify(data.user));
-      
-      const verifyStorage = await redisClient.get(`auth:${data.token}`);
-      console.log('Token stored successfully:', !!verifyStorage);
-
-    }
-    return res.status(response.status).json(data);
-  } catch (error) {
-    console.error('Auth service error:', error.message);
-    
-    if (error.response) {
-      return res.status(error.response.status).json(error.response.data);
-    }
-    
-    return res.status(500).json({
-      message: 'Could not connect to authentication service: ' + error.message
-    });
-  }
-};
-
-const Register = async (req, res) => {
-  try {
-    console.log('Request Content-Type:', req.headers['content-type']);
-    
-    const bodyData = req.body;
-    console.log('Sending data:', bodyData);
-    const url = process.env.AUTH_SERVICE_URL;
-    const response = await fetch(`${url}/api/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(bodyData)
-    });
-    const data = await response.json();
-      if (response.ok && data.token) {
-      console.log(data);
-        // await redisClient.set(`auth:${data.token}`, JSON.stringify(data.user), { EX: 3600 })
-      await redisClient.set(`auth:${data.token}`, JSON.stringify(data.user));
-      
-      const verifyStorage = await redisClient.get(`auth:${data.token}`);
-      console.log('Token stored successfully:', !!verifyStorage);
-
-    }
-    return res.status(response.status).json(data);
-  } catch (error) {
-    console.error('Auth service error:', error.message);
-    
-    if (error.response) {
-      return res.status(error.response.status).json(error.response.data);
-    }
-    
-    return res.status(500).send({
-      message: 'Could not connect to authentication service: ' + error.message
-    });
-  }
-};
-
 
 const routes = [
   {
@@ -229,6 +116,20 @@ const routes = [
   }
   ,
   {
+    path: '/api/weight-records',
+    method: 'post',
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/weight-records`,
+    middleware: authMiddleware
+  }
+  ,
+  {
+    path: '/api/nutritiongoeals/:id',
+    method: 'delete',
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/nutritiongoeals/:id`,
+    middleware: authMiddleware
+  }
+  ,
+  {
     path: '/api/nutritiongoeals',
     method: 'get',
     serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/nutritiongoeals`,
@@ -243,9 +144,16 @@ const routes = [
   }
   ,
   {
-    path: '/api/nutritiongoeals/:id',
-    method: 'delete',
-    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/nutritiongoeals/:id`,
+    path: '/api/exercises',
+    method: 'get',
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/exercises`,
+    middleware: authMiddleware
+  }
+  ,
+  {
+    path: '/api/exercises',
+    method: 'post',
+    serviceUrl: `${process.env.NUTRITION_SERVICE_URL}/api/exercises`,
     middleware: authMiddleware
   }
 ];
@@ -328,28 +236,7 @@ routes.forEach((route) => {
   app[method](path, handlers);
 });
 
-app.get('/', (req, res) => {res.status(200).json({ status: 'API Gateway is running' });});
-app.post('/api/auth/login', Login);
-app.post('/api/auth/register', Register);
-app.get('/user', getUser);
-app.post('/api/auth/verify', async (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1]; 
-  if (!token) {
-    return res.status(400).json({ message: 'Token is required' });
-  }
-  
-  try {
-    const exists = await redisClient.exists(`auth:${token}`);
-    if (exists) {
-      return res.status(200).json({ message: 'Token is valid' });
-    } else {
-      return res.status(401).json({ message: 'Invalid or expired token' });
-    }
-  } catch (error) {
-    console.error('Error verifying token:', error.message);
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-});
+app.use('/api/auth',AuthRoute);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

@@ -6,6 +6,7 @@ use App\Http\Requests\StoreWeightRecordRequest;
 use App\Http\Requests\UpdateWeightRecordRequest;
 use App\Http\Resources\WeightRecordeResource;
 use App\Models\WeightRecord;
+use App\Repositories\Interfaces\WeightRecordRepositoryInterface;
 use App\Repositories\WeightRecordRepository;
 use Illuminate\Http\Request;
 
@@ -13,10 +14,7 @@ class WeightRecordController extends Controller
 {
     protected $weightRecordRepository;
 
-    /**
-     * Constructor to inject the repository
-     */
-    public function __construct(WeightRecordRepository $weightRecordRepository)
+    public function __construct(WeightRecordRepositoryInterface $weightRecordRepository)
     {
         $this->weightRecordRepository = $weightRecordRepository;
     }

@@ -4,6 +4,8 @@ namespace App\Repositories;
 
 use App\Models\NutritionGoals;
 use App\Repositories\Interfaces\NutritionGoalsRepositoryInterface;
+use Carbon\Carbon;
+use DateTime;
 
 class NutritionGoalsRepository implements NutritionGoalsRepositoryInterface
 {
@@ -14,14 +16,13 @@ class NutritionGoalsRepository implements NutritionGoalsRepositoryInterface
         $this->model = $model;
     }
 
-    public function getAll()
+    public function getAllById($userId, $date = null)
     {
-        return $this->model->all();
-    }
-
-    public function getById(int $id)
-    {
-        return $this->model->findOrFail($id);
+        $date = Carbon::parse($date ?? new DateTime())->toDateString();
+        return $this->model->where('user_id', $userId)
+        ->where('startDate', '<=', $date )
+        ->where('endDate', '>=', $date)
+        ->first();
     }
 
     public function create(array $data)

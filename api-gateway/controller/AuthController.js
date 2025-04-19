@@ -56,7 +56,7 @@ const Login = async (req, res) => {
   try {
     const bodyData = req.body;
     const url = process.env.AUTH_SERVICE_URL;
-    const response = await fetch(`${url}/login`, {
+    const response = await fetch(`${url}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -94,7 +94,7 @@ const Register = async (req, res) => {
     const bodyData = req.body;
     console.log('Sending data:', bodyData);
     const url = process.env.AUTH_SERVICE_URL;
-    const response = await fetch(`${url}/register`, {
+    const response = await fetch(`${url}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -135,7 +135,7 @@ const VerifyEmail = async (req, res) => {
     }
     const url = process.env.AUTH_SERVICE_URL;
     
-    const response = await fetch(`${url}/sent-verify-link?email=${email}`, {
+    const response = await fetch(`${url}/api/auth/sent-verify-link?email=${email}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -189,6 +189,25 @@ const getAllTokens = async (req, res) => {
   }
 };
 
+const Verify = async (req, res)  => {
+  const token = req.headers['authorization']?.split(' ')[1]; 
+  if (!token) {
+    return res.status(400).json({ message: 'Token is required' });
+  }
+  
+  try {
+    const exists = await redisClient.exists(`auth:${token}`);
+    if (exists) {
+      return res.status(200).json({ message: 'Token is valid' });
+    } else {
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+  } catch (error) {
+    console.error('Error verifying token:', error.message);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 module.exports = {
   Login,
   Register,
@@ -196,5 +215,6 @@ module.exports = {
   getUser,
   getUserFromRedis,
   Logout,
-  getAllTokens
+  getAllTokens,
+  Verify
 };

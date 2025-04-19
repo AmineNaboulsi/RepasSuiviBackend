@@ -6,6 +6,7 @@ use App\Models\NutritionGoals;
 use App\Http\Requests\StoreNutritionGoalsRequest;
 use App\Http\Requests\UpdateNutritionGoalsRequest;
 use App\Repositories\NutritionGoalsRepository;
+use Illuminate\Http\Request;
 
 class NutritionGoalsController extends Controller
 {
@@ -19,10 +20,13 @@ class NutritionGoalsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return $this->nutritionGoalsRepository->getAll();
+        $userId = $request->userId;
+        $goals = $this->nutritionGoalsRepository->getAllById($userId, $request->date);
+        return $goals;
     }
+  
 
     /**
      * Store a newly created resource in storage.
@@ -30,7 +34,6 @@ class NutritionGoalsController extends Controller
     public function store(StoreNutritionGoalsRequest $request)
     {
         $nutitiongoals = $request->validated();
-        //add use id from request
         $nutitiongoals['user_id'] = $request->userId;
          try{
              return $this->nutritionGoalsRepository->create($nutitiongoals);
@@ -39,13 +42,13 @@ class NutritionGoalsController extends Controller
          }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-        return $this->nutritionGoalsRepository->getById($id);
-    }
+    // /**
+    //  * Display the specified resource.
+    //  */
+    // public function show($id)
+    // {
+    //     return $this->nutritionGoalsRepository->getById($id);
+    // }
     /**
      * Remove the specified resource from storage.
      */
