@@ -24,6 +24,10 @@ class NutritionGoalsController extends Controller
     {
         $userId = $request->userId;
         $goals = $this->nutritionGoalsRepository->getAllById($userId, $request->date);
+        if (!$goals) {
+            return response()->json(null, 204);
+        }
+
         return $goals;
     }
   

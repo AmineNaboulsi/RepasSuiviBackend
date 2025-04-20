@@ -22,10 +22,9 @@ class ExercisesRecource extends JsonResource
         ->map(function ($groupedExercises) {
             return $groupedExercises->map(function ($exercise) {
                 return [
-                    'time' => Carbon::parse($exercise->created_at)->format('H:i'),
-                    'exerciseTime' => Carbon::parse($exercise->timeStart)->diffInMinutes(Carbon::parse($exercise->timeEnd)),
+                    'minutes' => Carbon::parse($exercise->timeStart)->diffInMinutes(Carbon::parse($exercise->timeEnd)),
                     'exerciseType' => $exercise->type,
-                    'BurnedCatories' => $exercise->BurnedCatories,
+                    'calories' => $exercise->BurnedCatories,
                 ];
             });
         })

@@ -6,6 +6,7 @@ use App\Models\Exercise;
 use App\Http\Requests\StoreExerciseRequest;
 use App\Http\Requests\UpdateExerciseRequest;
 use App\Http\Resources\ExercisesRecource;
+use App\Http\Resources\ExerciseWeeksRecource;
 use App\Repositories\Interfaces\ExerciseRepositoryInterface;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,7 @@ class ExerciseController extends Controller
         try {
             if ($filter === 'week') {
                 $exercises = $this->exerciseRepository->getAllWeekTrained($userId, $date);
-                return response()->json($exercises);
+                return response()->json(new ExerciseWeeksRecource($exercises));
             } else {
                 $exercises = $this->exerciseRepository->getMonthTrained($userId, $date);
                 return response()->json(new ExercisesRecource($exercises));
