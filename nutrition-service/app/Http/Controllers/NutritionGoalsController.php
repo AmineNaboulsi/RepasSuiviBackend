@@ -27,7 +27,6 @@ class NutritionGoalsController extends Controller
         if (!$goals) {
             return response()->json(null, 204);
         }
-
         return $goals;
     }
   

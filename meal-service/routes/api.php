@@ -24,3 +24,5 @@ Route::get('getcaloroystrend', [MealController::class , 'getCaloroysTrend']);
 Route::get('/', function () {
     return response()->json(['message' => 'Test route is working']);
 });
+
+

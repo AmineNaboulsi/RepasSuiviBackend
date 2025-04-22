@@ -163,21 +163,22 @@ class UserController extends Controller{
             $payload = \Tymon\JWTAuth\Facades\JWTAuth::setToken($token)->getPayload();
             $userId = $payload->get('sub');
             $user = \App\Models\User::find($userId);
-
+            
+            return "lol";
             if ($user->email_verified_at !== null) {
                 $this->alreadyVerified();
             }
-
+            
             $user->email_verified_at = Carbon::now();
             $user->save();
 
              return $this->verificationSuccess();
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-            $this->verificationError('expired');
+            return $this->verificationError('expired');
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-            $this->verificationError('invalid');
+            return $this->verificationError('invalid');
         } catch (\Exception $e) {
-            $this->verificationError('general');
+            return $this->verificationError('general');
         }
     }
 
@@ -257,7 +258,7 @@ class UserController extends Controller{
         }
         return response()->json(
             [
-                'message' =>$message
+                'message' => $message
             ], 200
         );
     }

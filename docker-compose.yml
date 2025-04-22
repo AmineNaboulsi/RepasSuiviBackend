@@ -1,24 +1,50 @@
 services:
-  # API Gateway
+  # AServices
+  service-registry:
+      image: consul:1.15
+      container_name: service-registry
+      ports:
+        - "8500:8500"
+      command: agent -server -bootstrap -ui -client=0.0.0.0
+      networks:
+        - meal-tracker-network
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672" 
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - meal-tracker-network
+      
   api-gateway:
     build:
       context: ./api-gateway
     restart: always
+    image: aminenaboulsi/api-gateway:latest
     ports:
-      - "3000:3000"
-    # environment:
-    #   - AUTH_SERVICE_URL=http://auth-service:8000
-    #   - MEAL_SERVICE_URL=http://meal-service:8002
-    #   - ANALYTICS_SERVICE_URL=http://analytics-service:8004
+      - "8001:80"
+    volumes:
+      - ./api-gateway:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+        - AUTH_SERVICE_URL=http://auth-service
+        - MEAL_SERVICE_URL=http://meal-service
+        - NUTRITION_SERVICE_URL=http://nutrition-service
     depends_on:
       - auth-service
     networks:
       - meal-tracker-network
-
-  # Auth Service
   auth-service:
     build:
       context: ./auth-service
+    volumes:
+      - ./auth-service:/var/www/html
+    image: aminenaboulsi/auth-service:latest
     environment:
       - DB_CONNECTION=pgsql
       - DB_HOST=auth-db
@@ -27,7 +53,7 @@ services:
       - DB_USERNAME=OfferAuth
       - DB_PASSWORD=OfferAuth
     ports:
-      - "8484:8000"
+      - "8484:80"
     depends_on:
       - auth-db
     networks:
@@ -36,7 +62,10 @@ services:
     build:
       context: ./meal-service
     ports:
-      - "8000:8000"
+      - "8000:80"
+    image: aminenaboulsi/meal-service:latest
+    volumes:
+      - ./meal-service:/var/www/html
     environment:
       - DB_CONNECTION=pgsql
       - DB_HOST=meal-db
@@ -44,9 +73,34 @@ services:
       - DB_DATABASE=MealsDB
       - DB_USERNAME=MealsDB
       - DB_PASSWORD=MealsDB
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASSWORD=password
+    depends_on:
+      - service-registry
+      - rabbitmq
     networks:
       - meal-tracker-network
-
+  nutrition-service:
+    build:
+      context: ./nutrition-service
+    ports:
+      - "8005:80"
+    volumes:
+      - ./nutrition-service:/var/www/html
+    image: aminenaboulsi/nutrition-service:latest
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=nutrition-db
+      - DB_PORT=5432
+      - DB_DATABASE=NutritionDB
+      - DB_USERNAME=NutritionDB
+      - DB_PASSWORD=NutritionDB
+    networks:
+      - meal-tracker-network
+    depends_on:
+      - nutrition-db
   # Databases
   auth-db:
     image: postgres:17
@@ -108,4 +162,7 @@ volumes:
   portainer-data:
   meal-db-data:
   nutrition-db-data:
-  
+  auth-service:
+  meal-service:
+  nutrition-service:
+  gateway-service:
