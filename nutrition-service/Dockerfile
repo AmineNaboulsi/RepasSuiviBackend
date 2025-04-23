@@ -54,4 +54,4 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 EXPOSE 80
 
 # Start Apache
-CMD php artisan app:register-service-with-consul && apache2-foreground
+CMD apache2-foreground

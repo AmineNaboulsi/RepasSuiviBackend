@@ -29,7 +29,7 @@ class RegisterServiceWithConsul extends Command
     {
         try {
             $port = 80;
-            $serviceId = 'nutrition-service-' . uniqid();
+            $serviceId = env('CONSUL_SERVICE_ID', 'nutrition-service-1');
             $address = 'nutrition-service';
             $consulHost = env('CONSUL_HOST', 'http://service-registry:8500');
 

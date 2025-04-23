@@ -3,7 +3,8 @@ const axios = require('axios');
 const Consul = require('consul');
 const consul = new Consul({
   host: 'service-registry',
-  port: '8500'
+  port: '8500',
+  promisify: true,
 });
 const app = express();
 const dotenv = require('dotenv');
@@ -16,7 +17,7 @@ const AuthRoute = require('./routes/AuthRoute');
 app.use(cors());
 app.use(upload.any());
 
-const PORT = process.env.PORT || 80 ;
+let PORT = process.env.PORT || 80 ;
 const authMiddleware = require('./middleware/authMiddleware');
 dotenv.config();
 app.use(express.json());
@@ -186,12 +187,34 @@ const routes = [
     path: '/api/statistics',
     method: 'get',
     serviceUrl: [
-      {name : "exercises-week" ,url :`${process.env.NUTRITION_SERVICE_URL}/api/exercises?f=week`} , 
-      {name : "exercises" ,url :`${process.env.NUTRITION_SERVICE_URL}/api/exercises`} , 
-      {name : "weight-records" ,url :`${process.env.NUTRITION_SERVICE_URL}/api/weight-records`} , 
-      {name : "meals" ,url :`${process.env.MEAL_SERVICE_URL}/api/meals`} , 
-      {name : "caloroystrend" ,url :`${process.env.MEAL_SERVICE_URL}/api/getcaloroystrend`} , 
-      {name : "nutritiongoeals" ,url :`${process.env.NUTRITION_SERVICE_URL}/api/nutritiongoeals`} , 
+      {
+        name : "exercises-week" ,
+        servicename: 'nutrition-service',
+        url :`${process.env.NUTRITION_SERVICE_URL}/api/exercises?f=week`} , 
+      {
+        name : "exercises" ,
+        servicename: 'nutrition-service',
+        url :`${process.env.NUTRITION_SERVICE_URL}/api/exercises`} , 
+      {
+        name : "weight-records" ,
+        servicename: 'nutrition-service',
+        url :`${process.env.NUTRITION_SERVICE_URL}/api/weight-records`
+      } , 
+      {
+        name : "meals" ,
+        servicename: 'meal-service',
+        url :`${process.env.MEAL_SERVICE_URL}/api/meals`
+      } , 
+      {
+        name : "caloroystrend" ,
+        servicename: 'meal-service',
+        url :`${process.env.MEAL_SERVICE_URL}/api/getcaloroystrend`
+      } , 
+      {
+        name : "nutritiongoeals" ,
+        servicename: 'nutrition-service',
+        url :`${process.env.NUTRITION_SERVICE_URL}/api/nutritiongoeals`
+      } , 
     ],
     middleware: authMiddleware
   }
@@ -200,68 +223,55 @@ const routes = [
 
 
 const getServiceUrlFromConsul = async (serviceName) => {
-  return new Promise((resolve, reject) => {
-    consul.agent.service.list((err, services) => {
-      if (err) {
-        return reject(err);
-      }
-
-      const service = Object.values(services).find(s => s.Service === serviceName);
-      if (service) {
-        resolve(`http://${service.Address}:${service.Port}`);
-      } else {
-        reject(new Error(`Service ${serviceName} not found in Consul`));
-      }
+  try {
+    const serviceInstances = await consul.health.service({
+      service: serviceName,
+      passing: true,
     });
-  });
+
+    if (serviceInstances.length === 0) {
+      return `Service ${serviceName} not found or no healthy instances in Consul` ;
+    }
+
+    const service = serviceInstances[0].Service;
+    return`http://${service.Address}:${service.Port}`;
+
+  } catch (err) {
+    console.error(`Error fetching service ${serviceName} from Consul:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
+
 
 const FormData = require('form-data');
 const genericHandler = async (req, res, route) => {
+  const { servicename, serviceUrl } = route;
+
+  const buildUrl = (baseUrl) => {
+    const url = new URL(baseUrl);
+    const queryParams = {
+      ...req.query,
+      ...(req.user?.id ? { userId: req.user.id } : {})
+    };
+    for (const [key, value] of Object.entries(queryParams)) {
+      url.searchParams.append(key, value);
+    }
+    return url.toString();
+  };
+
   try {
-    const { servicename } = route;
-    let url = await getServiceUrlFromConsul(servicename);
-    
+    let url = serviceUrl;
+
     Object.keys(req.params).forEach((key) => {
       url = url.replace(`:${key}`, req.params[key]);
     });
-    const queryParams = new URLSearchParams({
-      ...req.query,
-      ...(req.user?.id ? { userId: req.user.id } : {}) 
-    }).toString();
-    
-    url += `?${queryParams}`;
 
-    const isMultipart = req.headers['content-type']?.includes('multipart/form-data');
-
-    let axiosConfig = {
-      method: req.method,
-      data: req.body,
-      url,
-      headers: {
-        'Authorization': req.headers.authorization || '',
-      },
-    };
-
-    const buildUrl = (baseUrl) => {
-      const url = new URL(baseUrl);
-      const queryParams = {
-        ...req.query,
-        ...(req.user?.id ? { userId: req.user.id } : {}) 
-      };
-      for (const [key, value] of Object.entries(queryParams)) {
-        url.searchParams.append(key, value);
-      }
-      return url.toString();
-    };
-    
     if (Array.isArray(serviceUrl)) {
       const results = await Promise.all(
         serviceUrl.map(async (service) => {
           const name = service.name || 'unknown';
           try {
             const finalUrl = buildUrl(service.url);
-            console.log(`finalUrl : ${finalUrl}`)
             const response = await axios.get(finalUrl, {
               headers: {
                 'Authorization': req.headers.authorization || '',
@@ -269,51 +279,93 @@ const genericHandler = async (req, res, route) => {
             });
             return { name, data: response.data };
           } catch (err) {
-            return { name, data: null };
+            return { name, data: null, error: err.message };
           }
         })
       );
       return res.status(200).json(results);
     }
 
-    if (isMultipart) {
-      const form = new FormData();
+    const isMultipart = req.headers['content-type']?.includes('multipart/form-data');
 
-      for (const [key, value] of Object.entries(req.body)) {
-        form.append(key, value);
-      }
-
-      if (req.files && req.files.length > 0) {
-        req.files.forEach(file => {
-          form.append(file.fieldname, file.buffer, file.originalname);
-        });
-      }
-      axiosConfig.data = form;
-      axiosConfig.headers = {
-        ...axiosConfig.headers,
-        ...form.getHeaders(), 
+    const buildAxiosConfig = (url) => {
+      const headers = {
+        'Authorization': req.headers.authorization || '',
       };
-    } else {
-      axiosConfig.data = req.body;
-      axiosConfig.headers['Content-Type'] = 'application/json';
+
+      if (isMultipart) {
+        const form = new FormData();
+
+        Object.entries(req.body).forEach(([key, value]) => {
+          form.append(key, value);
+        });
+
+        if (req.files?.length > 0) {
+          req.files.forEach(file => {
+            form.append(file.fieldname, file.buffer, file.originalname);
+          });
+        }
+
+        return {
+          method: req.method,
+          url,
+          data: form,
+          headers: {
+            ...headers,
+            ...form.getHeaders(),
+          },
+        };
+      } else {
+        return {
+          method: req.method,
+          url,
+          data: req.body,
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+          },
+        };
+      }
+    };
+    let finalUrl;
+
+    try {
+      finalUrl = buildUrl(url);
+      console.log(`Attempting request to ${finalUrl} (expecting failure)`);
+      const response = await axios(buildAxiosConfig(finalUrl));
+      return res.status(response.status).json(response.data);
+    } catch (err) {
+      console.log(`Expected failure for ${servicename}: ${err.message}`);
     }
 
-    const response = await axios(axiosConfig);
-    res.status(response.status).json(response.data);
+    try {
+      console.log(`Fetching URL for ${servicename} from Consul`);
+      const baseUrl = await getServiceUrlFromConsul(servicename);
+      console.log(`Consul returned: ${baseUrl}`);
+
+      const originalUrl = new URL(url);
+      const servicePath = originalUrl.pathname + originalUrl.search;
+      finalUrl = buildUrl(`${baseUrl}${servicePath}`);
+      console.log(`Retrying with Consul URL: ${finalUrl}`);
+
+      const response = await axios(buildAxiosConfig(finalUrl));
+      return res.status(response.status).json(response.data);
+    } catch (err) {
+      console.error(`Consul fetch failed for ${servicename}: ${err.message}`);
+      return res.status(502).json({
+        error: 'Internal server error',
+        details: err.message,
+      });
+    }
 
   } catch (error) {
     console.error(`Error forwarding request to ${route.serviceUrl}:`, error.message);
-    if (error.response) {
-      res.status(error.response.status).json(error.response.data);
-    } else {
-      res.status(500).json({
-        error: 'Internal server error',
-        details: error.message,
-      });
-    }
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error.message,
+    });
   }
 };
-
 
 routes.forEach((route) => {
   const { path, method, middleware } = route;
@@ -336,9 +388,9 @@ app.get('/' , (req, res) => {
 
 app.get('/health', (req, res) => res.send('OK'));
 
-// app.use((req, res) => {
-//   res.status(404).json({ error: 'Route not found' });
-// });
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
 
 app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
@@ -359,5 +411,58 @@ app.listen(PORT, () => {
       console.log('✅ Service registered with Consul');
     }
   });
-
 });
+
+// app.get('/api/health', async (req, res) => {
+//   try {
+//     const services = await consul.catalog.services();
+//     console.log('Consul services:', services);
+//     const healthyServices = [];
+    
+//     const requestedService = req.query.service;
+    
+//     for (const serviceName of Object.keys(services)) {
+//       if (requestedService && serviceName.toLowerCase() !== requestedService.toLowerCase()) {
+//         continue;
+//       }
+      
+//       const serviceInstances = await consul.health.service({
+//         service: serviceName,
+//         passing: true,
+//       });
+      
+//       if (serviceInstances.length > 0) {
+//         healthyServices.push({
+//           service: serviceName,
+//           instances: serviceInstances.map((instance) => ({
+//             id: instance.Service.ID,
+//             address: instance.Service.Address,
+//             port: instance.Service.Port,
+//             status: instance.Checks[0].Status,
+//           })),
+//         });
+//       }
+//     }
+    
+//     if (healthyServices.length === 0) {
+//       return res.status(503).json({ 
+//         error: requestedService 
+//           ? `Service '${requestedService}' not found or not healthy` 
+//           : 'No healthy services found' 
+//       });
+//     }
+
+//     // Return healthy services
+//     res.status(200).json({
+//       message: requestedService 
+//         ? `Service '${requestedService}' is healthy` 
+//         : 'API Gateway is healthy',
+//       services: healthyServices,
+//     });
+//   } catch (err) {
+//     console.error('Error fetching services from Consul:', err);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
+// Specific endpoint to find nutrition service

@@ -1,4 +1,4 @@
-FROM php:8.0-apache
+FROM php:8.2-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -56,4 +56,4 @@ EXPOSE 80
 # RUN php artisan app:register-service-with-consul && php-fpm
 
 # Start Apache
-CMD php artisan app:register-service-with-consul && apache2-foreground
+CMD apache2-foreground
