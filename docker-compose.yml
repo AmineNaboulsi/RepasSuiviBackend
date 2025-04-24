@@ -39,6 +39,17 @@ services:
       - auth-service
     networks:
       - meal-tracker-network
+  notification-service:
+    build:
+      context: ./notification-service
+    restart: always
+    image: aminenaboulsi/notification-service:latest
+    ports:
+      - "8007:80"
+    volumes:
+      - ./notification-service:/usr/src/app
+    networks:
+      - meal-tracker-network
   auth-service:
     build:
       context: ./auth-service
@@ -162,6 +173,7 @@ volumes:
   auth-db-data:
   user-db-data:
   portainer-data:
+  notification-service:
   meal-db-data:
   nutrition-db-data:
   auth-service:

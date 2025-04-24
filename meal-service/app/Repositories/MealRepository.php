@@ -7,7 +7,10 @@ use App\Models\Meal;
 use App\Repositories\Interfaces\MealRepositoryInterface;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 
 class MealRepository implements MealRepositoryInterface
 {
@@ -44,15 +47,107 @@ class MealRepository implements MealRepositoryInterface
             }
 
             $meal->foods()->attach($foodData);
+            
+            $totalNutrients = $this->calculateDayNutrition($meal->user_id, $dateFormatted);
 
-            return $meal;
+            return $totalNutrients;
 
         } catch (\Exception $e) {
-            throw new \Exception('Error creating meal: ' . $e->getMessage());
+            return 'Error creating meal: ' . $e->getMessage();
         }
 
     }
 
+    public function calculateDayNutrition($userId, $date)
+    {  
+        try{
+        $meals = Meal::with('foods')
+            ->where('user_id', $userId)
+            ->whereDate('created_at', $date)
+            ->get();
+
+        $total = ['calories' => 0, 'protein' => 0, 'carbs' => 0, 'fat' => 0];
+
+        foreach ($meals as $meal) {
+            foreach ($meal->foods as $food) {
+                $pivot = $food->pivot;
+                $factor = $pivot->quantity;
+                $total['calories'] += $food->calories * $factor;
+                $total['protein'] += $food->proteins * $factor;
+                $total['fat'] += $food->lipides * $factor;
+            }
+        }
+        
+        $goals = $this->fetchNutritionGoals($userId);
+        Log::info('Calculating day nutrition for user ' . $userId . ' on date ' . $date);
+        Log::info(
+            "[goals protein : " . $goals['protein'] . " total protein : ". $total['protein'] . 
+            "[goals carbs :" . $goals['carbs']  . " total calories : ". $total['calories']." ]" );
+        
+            if($goals['protein'] <= $total['protein'] && $goals['carbs'] <= $total['calories'] && $goals['fat'] <= $total['fat']) {
+                Log::info('You reached your daily goal');
+                $this->publishToRabbitMQ('nutrition.notification', [
+                    "message" => "You reached your daily goal"]);
+            }
+
+        return $goals;
+        }catch(\Exception $e) {
+            return 'Error fetching nutrition goals: ' . $e->getMessage();
+        }
+    }
+    
+    private function fetchNutritionGoals($userId)
+    {
+        try{
+                $client = new \GuzzleHttp\Client();
+                $response = $client->request('GET', env('NUTRITION_GOALS_API_URL') . '/api/nutritiongoeals?userId=' . $userId, [
+                'headers' => [
+                'Accept' => 'application/json',
+                ]
+            ]);
+            if ($response->getStatusCode() == 200) {
+                $goals = json_decode($response->getBody(), true);
+                return [
+                    'protein' => $goals['proteinTarget'] ?? 0,
+                    'carbs' => $goals['carbTarget'] ?? 0,
+                    'fat' => $goals['fatTarget'] ?? 0
+                ];
+            }
+            return [
+                'protein' => 0,
+                'carbs' => 0,
+                'fat' => 0
+            ];
+            
+        }catch(\Exception $e) {
+            throw new \Exception('Error fetching nutrition goals: ' . $e->getMessage());
+        }
+    }
+
+    public function publishToRabbitMQ($queue, $data)
+    {
+        try{
+            $connection = new AMQPStreamConnection(
+                    env('RABBITMQ_HOST', 'rabbitmq'),
+                    env('RABBITMQ_PORT', 5672),
+                    env('RABBITMQ_USER', 'user'),
+                    env('RABBITMQ_PASSWORD', 'password'),
+                    env('RABBITMQ_VHOST', '/')
+                );
+            $channel = $connection->channel();
+        
+            $channel->queue_declare($queue, false, true, false, false);
+        
+            $msg = new AMQPMessage(json_encode($data));
+            $channel->basic_publish($msg, '', $queue);
+        
+            $channel->close();
+            $connection->close();
+        }catch(\Exception $e) {
+            throw new \Exception('Error publishing to RabbitMQ: ' . $e->getMessage());
+        }
+    }
+    
     public function getCaloroysTrendbyDate($date, $userId)
     {
         try {
