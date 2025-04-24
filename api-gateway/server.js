@@ -331,11 +331,16 @@ const genericHandler = async (req, res, route) => {
 
     try {
       finalUrl = buildUrl(url);
-      console.log(`Attempting request to ${finalUrl} (expecting failure)`);
       const response = await axios(buildAxiosConfig(finalUrl));
       return res.status(response.status).json(response.data);
     } catch (err) {
-      console.log(`Expected failure for ${servicename}: ${err.message}`);
+      if(err.response) {
+        const status = err.response.status;
+          if (status < 500) {
+              console.log(`err.response good`);
+              return res.status(status).json(err.response.data);
+          }
+      }
     }
 
     try {
@@ -346,10 +351,20 @@ const genericHandler = async (req, res, route) => {
       const originalUrl = new URL(url);
       const servicePath = originalUrl.pathname + originalUrl.search;
       finalUrl = buildUrl(`${baseUrl}${servicePath}`);
-      console.log(`Retrying with Consul URL: ${finalUrl}`);
-
-      const response = await axios(buildAxiosConfig(finalUrl));
-      return res.status(response.status).json(response.data);
+      console.log(`Retryiaxiosng with Consul URL: ${finalUrl}`);
+      try {
+        const response = await axios(buildAxiosConfig(finalUrl));
+        return res.status(response.status).json(response.data);
+      } catch (err) {
+        if(err.response) {
+          const status = err.response.status;
+          console.error(`Consul request failed for ${servicename}: ${err.message}`);
+          if (status < 500) {
+              return res.status(status).json(err.response.data);
+          }
+        }
+        throw new Error(`Consul request failed with status ${status}`);
+      }
     } catch (err) {
       console.error(`Consul fetch failed for ${servicename}: ${err.message}`);
       return res.status(502).json({

@@ -121,14 +121,19 @@ class UserController extends Controller{
             if ($user === null) {
                 return response()->json(['message' => 'User not found'], 404);
             }
-            if ($user->email_verified_at !== null) {
-                return response()->json(
-                    [
-                        'message' => 'Email already verified' ,
-                        'isVerified' => true
-                    ]
-                    , 422);
+            try{
+                if ($user->email_verified_at !== null) {
+                    return response()->json(
+                        [
+                            'message' => 'Email already verified' ,
+                            'isVerified' => true
+                            ]
+                            , 422);
+                        }
+            }catch(\Exception $e) {
+                return response()->json(['message' => 'Error sending email'], 500);
             }
+            // $token = \Tymon\JWTAuth\Facades\JWTAuth::claims(['exp' => time() + (24 * 60 * 60)])->fromUser($user);
             $token = \Tymon\JWTAuth\Facades\JWTAuth::fromUser($user);
 
             $data = array(
@@ -137,8 +142,8 @@ class UserController extends Controller{
                 "verification_link" => env('FRONTEND_URL')  . '/verify-email?_token=' . $token
             );
 
-            Mail::send("emails.welcome", $data, function($message) use ($user) {
-                $message->to($user->email, $user->name)->subject("Welcome to RepasSuivi");
+            Mail::send("emails.verification", $data, function($message) use ($user) {
+                $message->to($user->email, $user->name)->subject("Email Verification - RepasSuivi");
             });
 
             return response()->json(
@@ -164,9 +169,8 @@ class UserController extends Controller{
             $userId = $payload->get('sub');
             $user = \App\Models\User::find($userId);
             
-            return "lol";
             if ($user->email_verified_at !== null) {
-                $this->alreadyVerified();
+                return $this->alreadyVerified();
             }
             
             $user->email_verified_at = Carbon::now();

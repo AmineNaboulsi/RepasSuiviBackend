@@ -9,6 +9,7 @@ use App\Http\Resources\ExercisesRecource;
 use App\Http\Resources\ExerciseWeeksRecource;
 use App\Repositories\Interfaces\ExerciseRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ExerciseController extends Controller
 {
@@ -53,7 +54,8 @@ class ExerciseController extends Controller
             $exercises = $this->exerciseRepository->add_TrainingTime($data);
             return response()->json($exercises);
         }catch(\Exception $e) {
-            return response()->json(['error' => 'Error retrieving exercises: ' . $e->getMessage()], 500);
+            Log::info('Error adding exercises: ' . $e->getMessage());
+            return response()->json(['error' => 'Error adding exercises: ' . $e->getMessage()], 500);
         }
 
     }

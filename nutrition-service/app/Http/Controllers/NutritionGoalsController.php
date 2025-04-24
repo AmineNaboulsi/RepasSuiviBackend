@@ -38,11 +38,11 @@ class NutritionGoalsController extends Controller
     {
         $nutitiongoals = $request->validated();
         $nutitiongoals['user_id'] = $request->userId;
-         try{
+        try{
              return $this->nutritionGoalsRepository->create($nutitiongoals);
-         }catch(\Exception $e){
+        }catch(\Exception $e){
             return response()->json(['error' => 'A nutrition goal already exists within this date range.'], 400);
-         }
+        }
     }
 
     // /**

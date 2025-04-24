@@ -10,6 +10,7 @@ class NutritionGoals extends Model
     use HasFactory;
 
     protected $fillable = [
+        'dailyCalorieTarget',
         'proteinTarget',
         'carbTarget',
         'fatTarget',

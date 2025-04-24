@@ -34,5 +34,5 @@
 ## open api
 - jwt rfc claims
 
-### aws (rdc , lamda)
+### aws (rds , lamda)
 

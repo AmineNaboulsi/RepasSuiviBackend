@@ -23,6 +23,7 @@ class StoreExerciseRequest extends FormRequest
     {
         return [
             'type' => 'nullable|integer',
+            'BurnedCatories' => 'required|numeric',
             'dateActivity' => 'required|date',
             'timeStart' => 'required|date_format:H:i',
             'timeEnd' => 'required|date_format:H:i|after:timeStart',

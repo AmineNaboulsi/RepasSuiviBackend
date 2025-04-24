@@ -21,6 +21,7 @@ class StoreNutritionGoalsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'dailyCalorieTarget' => 'required|numeric',
             'proteinTarget' => 'required|numeric',
             'carbTarget' => 'required|numeric',
             'fatTarget' => 'required|numeric',

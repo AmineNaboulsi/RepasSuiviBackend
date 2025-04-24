@@ -42,7 +42,6 @@ class NutritionGoalsRepository implements NutritionGoalsRepositoryInterface
         if ($existingGoal) {
             throw new \Exception('A nutrition goal already exists within this date range.');
         }
-        
         return $this->model->create($data);
     }
 
@@ -52,7 +51,6 @@ class NutritionGoalsRepository implements NutritionGoalsRepositoryInterface
         $goal->update($data);
         return $goal;
     }
-
     
     public function getUserGoals(int $userId)
     {

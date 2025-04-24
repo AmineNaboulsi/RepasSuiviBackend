@@ -11,6 +11,7 @@ class Exercise extends Model
 
     protected $fillable = [
         'dateActivity',
+        'BurnedCatories',
         'timeStart',
         'timeEnd',
         'user_id'
