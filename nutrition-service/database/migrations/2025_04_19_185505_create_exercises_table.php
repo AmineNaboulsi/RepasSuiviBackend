@@ -19,7 +19,6 @@ return new class extends Migration
             $table->time('timeStart')->nullable();
             $table->time('timeEnd')->nullable();
             $table->integer('user_id');
-            $table->timestamps();
         });
     }
 

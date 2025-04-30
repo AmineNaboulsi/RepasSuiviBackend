@@ -29,7 +29,7 @@ class StoreMealRequest extends FormRequest
             "meal_items" => 'nullable|array|min:1',
             "meal_items.*.id" => 'required|exists:food,id',
             "meal_items.*.quantity" => 'required|integer|min:1',
-            'meal_items.*.unite' => 'required|in:kg,g,ml,l,piece',
+            'meal_items.*.unite' => 'required|in:g,ml,piece',
         ];
     }
 

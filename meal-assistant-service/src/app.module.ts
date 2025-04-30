@@ -1,16 +1,15 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
 import { MealSuggestionModule } from './meal-suggestion/meal-suggestion.module';
+import { ConfigModule } from '@nestjs/config';
+
 @Module({
-    imports: [
-      ConfigModule.forRoot({ isGlobal: true }),
-      MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/meal-assistant'),
-      MealSuggestionModule],
+  imports: [
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(
+      process.env.MONGODB_URI || 'mongodb://localhost:27017/meal-suggestion-db'),
       
-    controllers: [AppController  ],
-    providers: [AppService],
+    MealSuggestionModule,
+  ],
 })
 export class AppModule {}

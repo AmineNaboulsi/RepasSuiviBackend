@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('weight_records', function (Blueprint $table) {
             $table->id();
             $table->float('weight');
-            $table->float('bodyFat')->nullable();
             $table->string('note')->nullable();
+            $table->float('bodyFat')->nullable();
             $table->integer('user_id');
             $table->timestamps();
         });

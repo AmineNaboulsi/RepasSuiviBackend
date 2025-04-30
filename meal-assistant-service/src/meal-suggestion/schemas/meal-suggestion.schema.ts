@@ -1,29 +1,42 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
-export type MealSuggestionDocument = MealSuggestion & Document;
+@Schema({ timestamps: { createdAt: 'createdAt' } })
+export class MealSuggestion extends Document {
+  @Prop({ required: true })
+  aiAgent: Date;
 
-@Schema()
-export class MealSuggestion {
+  @Prop({ type: Object, required: true })
+  mealSuggestion: object;
 
-    @Prop({ required: false })
-    aiAgent: string;
+  @Prop({ required: true })
+  status: string;
 
-    @Prop({ required: true , type : Object})
-    mealSuggestion: Record<string, any>;
+  @Prop({ default: false })
+  is_accepted: boolean;
 
-    @Prop({ required: false })
-    status : boolean
-    
-    @Prop({type: Boolean , required : false})
-    is_accepted : boolean
+  @Prop()
+  createdAt: Date;
 
-    @Prop({ required: false })
-    createAt: Date;
-    
-    @Prop({ required: false })
-    updateAt: Date;
-
+  @Prop([{ type: Types.ObjectId, ref: 'MealSuggestionFood' }])
+  foods: Types.ObjectId[];
 }
 
 export const MealSuggestionSchema = SchemaFactory.createForClass(MealSuggestion);
+
+@Schema()
+export class MealSuggestionFood extends Document {
+  @Prop({ required: true })
+  aliment_id: number;
+
+  @Prop({ required: true })
+  quantite: number;
+
+  @Prop({ required: true })
+  unit: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'MealSuggestion' })
+  mealSuggestion: Types.ObjectId;
+}
+
+export const MealSuggestionFoodSchema = SchemaFactory.createForClass(MealSuggestionFood);

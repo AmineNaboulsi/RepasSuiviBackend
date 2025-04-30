@@ -1,1 +1,5 @@
-export class CreateMealSuggestionDto {}
+export class CreateMealSuggestionDto {
+    userId: number;
+    goals: string[];
+    userData: object;
+}
